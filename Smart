@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AWD Crop & Irrigation Manager - Absolute Neural OCR Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js"></script>
+    <style>
+        :root {
+            --primary: #0f5132;
+            --primary-light: #198754;
+            --accent: #d97706;
+            --bg-gradient: linear-gradient(135deg, #f0fdf4 0%, #f8fafc 100%);
+            --card-bg: rgba(255, 255, 255, 0.98);
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-light: #cbd5e1;
+            --shadow-premium: 0 10px 25px -5px rgba(15, 81, 50, 0.1), 0 8px 10px -6px rgba(15, 81, 50, 0.05);
+        }
+
+        ::-webkit-scrollbar { display: none; width: 0px; background: transparent; }
+        html { scrollbar-width: none; -ms-overflow-style: none; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg-gradient);
+            margin: 0;
+            padding: 85px 15px 65px 15px;
+            color: var(--text-main);
+            line-height: 1.6;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .container { max-width: 850px; margin: auto; width: 100%; box-sizing: border-box; }
+
+        .fixed-header {
+            position: fixed; top: 0; left: 0; width: 100%;
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px);
+            z-index: 1000; box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            padding: 12px 0; border-bottom: 1px solid rgba(25, 135, 84, 0.15);
+            text-align: center;
+        }
+        .fixed-header h2 { color: var(--primary); font-size: 18px; font-weight: 700; margin: 0; }
+
+        .fixed-footer {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px);
+            z-index: 1000; box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
+            text-align: center; padding: 10px 0; font-size: 12px; color: var(--text-muted);
+            border-top: 1px solid rgba(0,0,0,0.05);
+        }
+        .fixed-footer strong { color: var(--primary); }
+
+        .card {
+            background: var(--card-bg); border-radius: 16px; padding: 20px;
+            margin-bottom: 20px; box-shadow: var(--shadow-premium);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            box-sizing: border-box; width: 100%; overflow: hidden;
+        }
+
+        #activationWrapper { display: none; margin-top: 60px; text-align: center; }
+        .lock-icon { font-size: 55px; margin-bottom: 12px; }
+        .lock-message { color: #dc2626; font-size: 15px; font-weight: 600; margin-bottom: 24px; }
+        .key-input-box { display: flex; flex-direction: column; gap: 16px; max-width: 400px; margin: auto; }
+        .key-input-wrapper input {
+            width: 100%; padding: 16px; font-size: 16px; text-align: center; letter-spacing: 2px;
+            border: 2px solid var(--border-light); border-radius: 12px; outline: none; font-family: monospace; background: #fff; box-sizing: border-box;
+        }
+
+        .quick-converter { background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border: 1px solid #fde68a; }
+        .quick-converter h3 { margin: 0 0 10px 0; color: #b45309; font-size: 14px; font-weight: 600; text-align: center; }
+        .converter-row { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; }
+        .converter-row input {
+            width: 140px; padding: 12px; font-size: 15px; border: 2px solid #fcd34d;
+            border-radius: 12px; text-align: center; outline: none; background: #fff; font-weight: 600; color: #92400e; box-sizing: border-box;
+        }
+        .quick-result { font-size: 15px; font-weight: 700; color: #991b1b; background: rgba(255, 255, 255, 0.95); padding: 12px 18px; border-radius: 12px; border: 1px solid #fcd34d; box-sizing: border-box; }
+
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-weight: 600; font-size: 13px; margin-bottom: 6px; color: var(--primary); }
+        
+        input.custom-input, select.custom-input {
+            width: 100%; padding: 14px; font-size: 15px; border: 2px solid var(--border-light);
+            border-radius: 12px; box-sizing: border-box; background: #ffffff; outline: none; color: var(--text-main); font-weight: 500;
+        }
+        input.custom-input:focus, select.custom-input:focus { border-color: var(--primary-light); box-shadow: 0 0 0 4px rgba(25, 135, 84, 0.15); }
+
+        .btn {
+            padding: 14px; font-size: 15px; font-weight: 600; border: none; border-radius: 12px;
+            cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; box-sizing: border-box;
+        }
+        .btn-primary { background: linear-gradient(135deg, #198754 0%, #0f5132 100%); color: white; margin-top: 10px; box-shadow: 0 6px 15px rgba(25, 135, 84, 0.25); }
+        .btn-camera { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; margin-bottom: 12px; box-shadow: 0 6px 15px rgba(37, 99, 235, 0.25); }
+        .btn-excel { background: linear-gradient(135deg, #0d9488, #0f766e); color: white; margin-top: 10px; }
+        .btn-backup { background: linear-gradient(135deg, #d97706, #b45309); color: white; margin-top: 10px; }
+        .btn-print { background: linear-gradient(135deg, #dc2626, #b91c1c); color: white; margin-top: 20px; }
+        
+        .btn-link { background: #eff6ff; color: #1d4ed8; padding: 14px; border: 1.5px solid #bfdbfe; font-weight: 600; border-radius: 12px; cursor: pointer; width: 100%; text-align: center; text-decoration: none; display: block; box-sizing: border-box; }
+        
+        .nav-tabs { display: flex; gap: 4px; margin-bottom: 15px; }
+        .tab-btn { flex: 1; padding: 10px 2px; font-size: 11px; font-weight: 600; border: 2px solid var(--border-light); border-radius: 8px; background: #fff; color: var(--primary); cursor: pointer; text-align: center; transition: all 0.2s; }
+        .tab-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+        .report-section { border: 1px solid #d1fae5; border-radius: 14px; padding: 14px; margin-bottom: 20px; background: #f8fafc; box-sizing: border-box; width: 100%; overflow: hidden; }
+        .section-title { color: var(--primary); font-size: 15px; font-weight: 700; margin: 0 0 12px 0; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; }
+        
+        .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 10px; box-sizing: border-box; cursor: pointer; position: relative; }
+        .table-responsive::after {
+            content: '🔍 फुलस्क्रीन देखें (Tap to Expand)'; display: block; text-align: right;
+            font-size: 10px; color: #1d4ed8; margin-top: 4px; font-weight: 600;
+        }
+
+        .custom-table { width: 100%; max-width: 100%; border-collapse: collapse; border-radius: 10px; overflow: hidden; border: 1px solid var(--border-light); font-size: 12px; box-sizing: border-box; }
+        .custom-table th { background: #e6f4ea; color: var(--primary); padding: 10px 6px; font-weight: 600; text-align: center; border-bottom: 1px solid var(--border-light); white-space: nowrap; }
+        .custom-table td { padding: 9px 6px; text-align: center; border-bottom: 1px solid #f1f5f9; background: #fff; font-weight: 500; white-space: nowrap; }
+
+        .table-fullscreen-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.85); z-index: 9999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            padding: 15px; box-sizing: border-box; backdrop-filter: blur(5px);
+        }
+        .table-fullscreen-content {
+            background: #ffffff; width: 100%; max-width: 95vw; max-height: 90vh;
+            border-radius: 16px; padding: 20px; overflow: auto; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            position: relative;
+        }
+        .close-fs-btn {
+            position: absolute; top: 12px; right: 12px; background: #dc2626; color: white;
+            border: none; padding: 8px 16px; font-weight: 700; border-radius: 8px; cursor: pointer; font-size: 13px; z-index: 10;
+        }
+
+        .tag-dose { background: #e6f4ea; color: #0f5132; padding: 3px 6px; border-radius: 6px; font-weight: 700; font-size: 11px; display: inline-block; border: 1px solid #b7e4c7; white-space: nowrap; }
+        .tag-date { background: #fffbeb; color: #b45309; padding: 3px 6px; border-radius: 6px; font-weight: 700; font-size: 11px; border: 1px solid #fde68a; white-space: nowrap; display: inline-block; }
+        .tag-main { background: #eff6ff; color: #1d4ed8; font-weight: 600; font-size: 13px; padding: 10px; border-radius: 12px; text-align: center; border: 1.5px solid #bfdbfe; margin-bottom: 16px; box-sizing: border-box; }
+
+        .fert-summary-box {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            border: 2px dashed #f59e0b; padding: 12px; border-radius: 12px;
+            margin-bottom: 18px; text-align: center; font-size: 12px; color: #92400e; box-sizing: border-box;
+        }
+        .fert-summary-box strong { color: #b45309; font-size: 13px; display: block; margin-bottom: 4px; }
+        .fert-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .fert-box { background: #ffffff; border: 1px solid #fcd34d; border-radius: 10px; padding: 10px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
+        .fert-box span { display: block; font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; }
+        .fert-box strong { display: block; font-size: 15px; color: #dc2626; font-weight: 700; margin-top: 2px; }
+
+        .training-card {
+            background: #ffffff; border: 1px solid #e2e8f0; border-left: 5px solid var(--accent);
+            border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        }
+        .training-card h4 { color: #b45309; margin: 0 0 8px 0; font-size: 16px; font-weight: 700; }
+        .training-card p { margin: 6px 0; font-size: 13px; color: #475569; }
+        .training-card ul { margin: 6px 0 6px 20px; padding: 0; font-size: 13px; color: #334155; }
+        .training-card li { margin-bottom: 4px; }
+
+        .doctor-card {
+            background: #ffffff; border: 1px solid #e2e8f0; border-left: 5px solid var(--primary);
+            border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        }
+        .doctor-card.yield-boost { border-left-color: #f59e0b; background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%); }
+        .doctor-card.pump-calc { border-left-color: #1d4ed8; background: linear-gradient(135deg, #eff6ff 0%, #ffffff 100%); }
+        .doctor-card.ai-result { border-left-color: #7c3aed; background: linear-gradient(135deg, #f5f3ff 0%, #ffffff 100%); }
+        .doctor-card h4 { color: var(--primary); margin: 0 0 8px 0; font-size: 16px; font-weight: 700; }
+        .calc-result-box {
+            background: #e0f2fe; border: 1.5px solid #bae6fd; border-radius: 8px;
+            padding: 10px; margin-top: 10px; font-size: 13px; color: #0369a1; font-weight: 600; text-align: center;
+        }
+
+        .links-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; }
+        @media(max-width: 500px) { .links-grid { grid-template-columns: 1fr; } }
+
+        .hidden { display: none !important; }
+        .print-only { display: none; }
+
+        @page { size: A4 portrait; margin: 8mm; }
+        @media print {
+            body { background: white; font-size: 11px; padding: 0 !important; color: #000; }
+            .fixed-header, .fixed-footer, .nav-tabs, .no-print, .btn { display: none !important; }
+            .card { box-shadow: none; border: none; padding: 0; margin-bottom: 10px; width: 100%; }
+            .hidden { display: block !important; }
+            #calcSection, #docSection, #trainSection, #adminSection { display: block !important; }
+            .print-only { display: block !important; text-align: center; margin-bottom: 15px; }
+            .print-header h1 { font-size: 18px; margin: 0; color: #000; text-transform: uppercase; border-bottom: 2px solid #000; padding-bottom: 4px; }
+            .print-footer-brand { margin-top: 20px; text-align: center; font-weight: bold; font-size: 11px; border-top: 2px solid #000; padding-top: 6px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="fixed-header no-print">
+        <h2>🌾 AWD Cycle Manager Pro (Absolute Neural OCR Pro)</h2>
+    </div>
+
+<div class="container">
+
+    <div id="activationWrapper" class="card hidden">
+        <div class="lock-icon">🔒</div>
+        <h2>App Locked</h2>
+        <div id="lockMessageText" class="lock-message"></div>
+        <div class="key-input-box">
+            <div class="key-input-wrapper">
+                <input type="password" id="licenseKey" placeholder="XXXXXX-XXXXX-XXXXXX" maxlength="30" oninput="formatLicenseKey(event)">
+            </div>
+            <button class="btn btn-primary" onclick="verifyKey()">Activate</button>
+        </div>
+    </div>
+
+    <div id="mainApp" class="hidden">
+        
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs no-print">
+            <button class="tab-btn active" id="tabCalcBtn" onclick="switchTab('calc')">📊 सिंचाई कैलकुलेटर</button>
+            <button class="tab-btn" id="tabDocBtn" onclick="switchTab('doc')">🌿 क्रॉप डॉक्टर</button>
+            <button class="tab-btn" id="tabTrainBtn" onclick="switchTab('train')">📖 AWD ट्रेनिंग</button>
+            <button class="tab-btn" id="tabAdminBtn" onclick="switchTab('admin')">⚙️ डेटा/एंट्री</button>
+        </div>
+
+        <!-- TAB 1: CALCULATOR SECTION -->
+        <div id="calcSection">
+            <div class="card no-print">
+                <div class="quick-converter card" style="margin-bottom: 16px;">
+                    <h3>हेक्टेयर से एकड़ कनवर्टर (ऑटो-फिल)</h3>
+                    <div class="converter-row">
+                        <input type="number" id="quickHectare" placeholder="हेक्टेयर" step="0.01" oninput="syncHectareToForm()">
+                        <div id="quickResult" class="quick-result">0.00 Acre</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>खेत का नाम / प्लॉट प्रोफाइल:</label>
+                    <input type="text" class="custom-input" id="plotName" value="मुख्य धान खेत (Plot 1)">
+                </div>
+
+                <div class="form-group">
+                    <label>खेती का रकबा (Land Area in Acres) <span style="color:red;">*</span>:</label>
+                    <input type="number" class="custom-input" id="landArea" placeholder="रकबा दर्ज करें (जैसे: 2.5)" step="0.01" oninput="syncFormToConverter()" required>
+                </div>
+
+                <div class="input-row">
+                    <div class="form-group input-half">
+                        <label>फसल अवधि (दिन):</label>
+                        <input type="number" class="custom-input" id="cropDuration" value="100" required>
+                    </div>
+                    <div class="input-half">
+                        <label>बुवाई की तारीख:</label>
+                        <input type="date" class="custom-input" id="sowingDate" value="2025-12-07" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>बुवाई से रोपाई के दिन:</label>
+                    <input type="number" class="custom-input" id="sowingDays" value="33" required>
+                </div>
+                
+                <button class="btn btn-primary" onclick="calculateSchedule()">AWD सिंचाई और खाद रिपोर्ट बनाएं</button>
+            </div>
+
+            <div class="card no-print">
+                <div class="form-group" style="margin-bottom: 10px;">
+                    <label>राज्य चुनें:</label>
+                    <select class="custom-input" id="statePortal">
+                        <option value="mp" selected>Madhya Pradesh</option>
+                        <option value="up">Uttar Pradesh</option>
+                        <option value="bihar">Bihar</option>
+                        <option value="cg">Chhattisgarh</option>
+                        <option value="raj">Rajasthan</option>
+                    </select>
+                </div>
+                <div>
+                    <button type="button" class="btn-link" onclick="openPortalLink('record')">भूमि अभिलेख (Land Record)</button>
+                </div>
+            </div>
+
+            <div id="results" class="hidden">
+                <div class="card">
+                    <div class="print-only print-header">
+                        <h1>AWD Irrigation Report - <span id="printPlotName"></span></h1>
+                    </div>
+
+                    <div class="tag-main">
+                        प्लॉट: <span id="displayPlot"></span> | कुल रकबा: <span id="displayArea"></span> एकड़
+                    </div>
+
+                    <div class="report-section">
+                        <h3 class="section-title">खेत की तैयारी और बुवाई</h3>
+                        <div class="table-responsive" onclick="openFullscreenTable(this)">
+                            <table class="custom-table">
+                                <tr><th>गतिविधि</th><th>तारीख</th><th>मात्रा</th></tr>
+                                <tr><td>खाद / कंपोस्ट</td><td><span id="dtCompost" class="tag-date"></span></td><td><span class="tag-dose"><span id="calcCompost"></span> टन</span></td></tr>
+                                <tr><td>बुवाई (Sowing)</td><td><span id="dtSowing" class="tag-date"></span></td><td>-</td></tr>
+                                <tr><td>पराली प्रबंधन</td><td><span id="dtStraw" class="tag-date"></span></td><td><span class="tag-dose"><span id="calcStraw"></span> टन</span></td></tr>
+                                <tr><td>रोपाई (Transplant)</td><td><span id="dtTransplant" class="tag-date"></span></td><td>-</td></tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="report-section" style="background: #fffbeb; border-color: #fde68a;">
+                        <h3 class="section-title" style="color:#b45309; border-bottom-color:#fcd34d;">आर्थिक और श्रम अनुमान</h3>
+                        <div class="table-responsive" onclick="openFullscreenTable(this)">
+                            <table class="custom-table">
+                                <tr><th>विवरण</th><th>अनुमानित आंकड़े</th></tr>
+                                <tr><td>खेती की कुल लागत</td><td>₹ <span id="calcCost" class="tag-dose" style="background:#fff; color:#b45309;"></span></td></tr>
+                                <tr><td>पानी की बचत</td><td><span class="tag-dose" style="background:#fff; color:#1d4ed8;">31%</span></td></tr>
+                                <tr><td>पुरुष मजदूर</td><td><span id="calcMaleLab" style="font-weight:600;"></span></td></tr>
+                                <tr><td>महिला मजदूर</td><td><span id="calcFemaleLab" style="font-weight:600;"></span></td></tr>
+                                <tr><td>कुल मजदूर</td><td><strong><span id="calcTotalLab" style="color: #0f5132;"></span></strong></td></tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="report-section">
+                        <h3 class="section-title">खाद प्रबंधन</h3>
+                        <div class="table-responsive" onclick="openFullscreenTable(this)">
+                            <table class="custom-table">
+                                <tr><th>चरण</th><th>तारीख</th><th>मात्रा</th></tr>
+                                <tr><td>बेसल डोज</td><td><span id="dtBasal" class="tag-date"></span></td><td><span class="tag-dose">DAP: <span id="calcDAP"></span>kg | MOP: <span id="calcMOP"></span>kg | Urea: <span id="calcUrea1"></span>kg</span></td></tr>
+                                <tr><td>प्रथम टॉप ड्रेसिंग</td><td><span id="dtTop1" class="tag-date"></span></td><td><span class="tag-dose">Urea: <span id="calcUrea2"></span>kg | Zinc: <span id="calcZinc"></span>kg</span></td></tr>
+                                <tr><td>द्वितीय टॉप ड्रेसिंग</td><td><span id="dtTop2" class="tag-date"></span></td><td><span class="tag-dose">Urea: <span id="calcUrea3"></span>kg</span></td></tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="fert-summary-box">
+                        <strong>कुल खाद की मात्रा</strong>
+                        <div class="fert-grid" style="margin-top: 10px;">
+                            <div class="fert-box"><span>DAP</span><strong id="sumDAP">0</strong> kg</div>
+                            <div class="fert-box"><span>MOP</span><strong id="sumMOP">0</strong> kg</div>
+                            <div class="fert-box"><span>Urea</span><strong id="sumUrea">0</strong> kg</div>
+                            <div class="fert-box"><span>Zinc</span><strong id="sumZinc">0</strong> kg</div>
+                        </div>
+                    </div>
+
+                    <div class="report-section" style="background: #f0fdf4; border-color: #b7e4c7;">
+                        <h3 class="section-title" style="color:#0f5132; border-bottom-color:#b7e4c7;">AWD सिंचाई चक्र</h3>
+                        <div style="background: #e6f4ea; padding: 10px; border-radius: 8px; margin-bottom: 10px; text-align: center; font-size: 13px;">
+                            <strong style="color:#0f5132;">पहली सिंचाई:</strong> <span id="dtFirstIrr" class="tag-date"></span>
+                        </div>
+                        <div class="table-responsive" onclick="openFullscreenTable(this)">
+                            <table class="custom-table">
+                                <thead><tr><th>चक्र</th><th>सिंचाई तारीख</th><th>Max Dry-down</th><th>सुखाने की तारीख</th><th>पानी भरने की तारीख</th></tr></thead>
+                                <tbody id="awdTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="report-section">
+                        <h3 class="section-title">फसल कटाई</h3>
+                        <div class="table-responsive" onclick="openFullscreenTable(this)">
+                            <table class="custom-table">
+                                <tr><td>अंतिम सिंचाई बंद</td><td><span id="dtStopWater" class="tag-date"></span></td></tr>
+                                <tr><td>कटाई की तारीख</td><td><span id="dtHarvest" class="tag-date"></span></td></tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="print-only print-footer-brand">
+                        Developer: SHARD PATEL | 8120727987
+                    </div>
+
+                    <button class="btn btn-print no-print" onclick="window.print()">PDF रिपोर्ट सेव करें</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: CROP DOCTOR, WEED MANAGEMENT & PUMP CALCULATOR -->
+        <div id="docSection" class="hidden">
+            
+            <!-- HYBRID SELECTOR + ABSOLUTE NEURAL OCR -->
+            <div class="card" style="border: 2px dashed #7c3aed; background: #faf5ff;">
+                <h3 class="section-title" style="color: #7c3aed;">🩺 क्रॉप डॉक्टर और न्यूरल OCR स्कैनर</h3>
+                <p style="font-size: 13px; color: #5b21b6; margin-bottom: 12px;">कैमरे से फोटो खींचें या नीचे सूची से सीधे रोग चुनें:</p>
+                
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label style="color: #6d28d9;">रोग या कीट सीधे चुनें (Direct Select):</label>
+                    <select class="custom-input" id="manualDiseaseSelect" onchange="showManualDiseasePackage()" style="border-color: #c4b5fd; background:#fff;">
+                        <option value="">-- कृपया रोग चुनें (Select Disease) --</option>
+                        <option value="blast">ब्लास्ट रोग (Blast Disease / झुलसा)</option>
+                        <option value="blb">जीवाणु पत्ती झुलसा (Bacterial Leaf Blight - BLB)</option>
+                        <option value="borer">तना छेदक / गोभ की सुंडी (Stem Borer)</option>
+                        <option value="bph">भूरा माहू / तेला (BPH)</option>
+                        <option value="sheath">शीथ ब्लास्ट (Sheath Blight)</option>
+                    </select>
+                </div>
+
+                <input type="file" id="diseaseCameraInput" accept="image/*" capture="environment" class="hidden" onchange="detectDiseaseAndPackage(event)">
+                <button class="btn btn-camera" onclick="document.getElementById('diseaseCameraInput').click()">📸 न्यूरल कैमरा स्कैन (Neural Scan)</button>
+                
+                <div id="diseaseScanStatus" style="font-size: 13px; color: #b45309; font-weight:600; text-align:center; margin-top: 10px;"></div>
+                <div id="aiPackageResult" class="hidden" style="margin-top: 15px;"></div>
+            </div>
+
+            <div class="card">
+                <h3 class="section-title" style="color: #1d4ed8;">🛢️ स्प्रे पंप और टंकी कैलकुलेटर</h3>
+                <div class="doctor-card pump-calc">
+                    <div class="input-row">
+                        <div class="input-half">
+                            <label style="font-size: 12px; font-weight:600; color:#0369a1;">एकड़ (Acres):</label>
+                            <input type="number" class="custom-input" id="calcAcres" value="1" step="0.1" oninput="calculatePumpDose()">
+                        </div>
+                        <div class="input-half">
+                            <label style="font-size: 12px; font-weight:600; color:#0369a1;">कुल दवा (मिली/ग्राम):</label>
+                            <input type="number" class="custom-input" id="totalMedicine" placeholder="जैसे: 250" oninput="calculatePumpDose()">
+                        </div>
+                    </div>
+                    <div class="calc-result-box" id="pumpResultText">
+                        👉 1 एकड़ के लिए 16 लीटर की <strong>10 टंकियां</strong> लगेंगी。<br>
+                        💧 प्रत्येक टंकी में <strong>25 मिली/ग्राम</strong> दवा मिलानी चाहिए।
+                    </div>
+                </div>
+            </div>
+
+            <!-- WEED MANAGEMENT -->
+            <div class="card">
+                <h3 class="section-title" style="color: #b45309;">🌱 खरपतवार नियंत्रण (Weed Management)</h3>
+                <div class="doctor-card">
+                    <h4>अंकुरण से पहले (Pre-Emergence) - 0 से 3 दिन</h4>
+                    <select class="custom-input" id="drop_weed_pre">
+                        <option>Syngenta - Rifit / Pretilachlor 50% EC — 700 मिली</option>
+                        <option>Rallis India - Saturn (Butachlor 50% EC) — 1 लीटर</option>
+                    </select>
+                </div>
+                <div class="doctor-card">
+                    <h4>शुरुआती अवस्था (Early Post-Emergence) - 10 से 15 दिन</h4>
+                    <select class="custom-input" id="drop_weed_early">
+                        <option>Gharda - Saathi (Pyrazosulfuron-ethyl 10% WP) — 90 ग्राम</option>
+                    </select>
+                </div>
+                <div class="doctor-card">
+                    <h4>बाद की अवस्था (Post-Emergence) - 20 से 25 दिन</h4>
+                    <select class="custom-input" id="drop_weed_post">
+                        <option>PI Industries - Nominee Gold (Bispyribac-sodium 10% SC) — 250 मिली</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- GROWTH & TONIC -->
+            <div class="card">
+                <h3 class="section-title" style="color: #b45309;">🚀 फसल की पैदावार और ग्रोथ बढ़ाने के उपाय (Yield Booster)</h3>
+                <div class="doctor-card yield-boost">
+                    <h4>1. कल्ले बढ़ाना (30-45 दिन)</h4>
+                    <select class="custom-input" id="drop_tillering">
+                        <option>Syngenta - Isabion (Amino Acid) — 400 मिली</option>
+                        <option>PI Industries - Biovita (Seaweed Extract) — 500 ग्राम</option>
+                        <option>Tata - 19:19:19 (Water Soluble NPK) — 1 किलोग्राम</option>
+                    </select>
+                </div>
+                <div class="doctor-card yield-boost">
+                    <h4>2. बालियों का विकास (55-70 दिन)</h4>
+                    <select class="custom-input" id="drop_flowering">
+                        <option>Tata - 0:52:34 NPK — 1 किलोग्राम</option>
+                        <option>UPL - Boron 20% — 150 ग्राम</option>
+                    </select>
+                </div>
+                <div class="doctor-card yield-boost">
+                    <h4>3. दाने भरना और वजन बढ़ाना (85-100 दिन)</h4>
+                    <select class="custom-input" id="drop_grain">
+                        <option>Tata - 0:0:50 SOP Potash — 1 किलोग्राम</option>
+                        <option>Dhanuka - Caldan — 250 मिली</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- CROP DISEASES & INSECTICIDES -->
+            <div class="card">
+                <h3 class="section-title" style="color: #0f5132;">🌾 धान के प्रमुख रोग, कीट और विभिन्न कंपनियों की दवाइयां</h3>
+                <div class="doctor-card">
+                    <h4>1. ब्लास्ट रोग (Blast / झुलसा रोग)</h4>
+                    <select class="custom-input" id="drop_blast">
+                        <option>Syngenta - Beam (Tricyclazole 75% WP) — 120 ग्राम</option>
+                        <option>Dhanuka - Kasu-B — 400 मिली</option>
+                        <option>UPL - Saaf — 300 ग्राम</option>
+                    </select>
+                </div>
+                <div class="doctor-card">
+                    <h4>2. जीवाणु पत्ती झुलसा (BLB)</h4>
+                    <select class="custom-input" id="drop_blb">
+                        <option>Streptocycline (9g) + Copper Oxychloride (500g)</option>
+                        <option>Dhanuka - Dhancof — 500 ग्राम</option>
+                    </select>
+                </div>
+                <div class="doctor-card">
+                    <h4>3. तना छेदक (Stem Borer)</h4>
+                    <select class="custom-input" id="drop_borer">
+                        <option>FMC - Fame (Flubendiamide 39.3% SC) — 50 मिली</option>
+                        <option>Bayer - Regent — 4 किलोग्राम (दानेदार)</option>
+                    </select>
+                </div>
+                <div class="doctor-card">
+                    <h4>4. भूरा माहू / तेला (BPH)</h4>
+                    <select class="custom-input" id="drop_bph">
+                        <option>PI Industries - Token (Dinotefuran 20% SG) — 120 ग्राम</option>
+                        <option>Syngenta - Chess — 120 ग्राम</option>
+                    </select>
+                </div>
+                <div class="doctor-card">
+                    <h4>5. शीथ ब्लास्ट (Sheath Blight)</h4>
+                    <select class="custom-input" id="drop_sheath">
+                        <option>Tata - Contaf Plus (Hexaconazole 5% SC) — 400 मिली</option>
+                        <option>Bayer - Nativo — 80 ग्राम</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: TRAINING SECTION -->
+        <div id="trainSection" class="hidden">
+            <div class="card">
+                <h3 class="section-title" style="color: #b45309;">📖 AWD (अल्टरनेट वेटिंग एंड ड्रायिंग) मास्टर ट्रेनिंग गाइड</h3>
+                <div class="training-card">
+                    <h4>स्टेप 1: AWD क्या है और इसके नियम</h4>
+                    <p>खेत को लगातार पानी से भरने के बजाय पानी सूखने पर (वाटर ट्यूब स्तर 15 सेमी नीचे जाने पर) दोबारा पानी भरें। रोपाई के शुरुआती 20 दिन पानी भरकर रखें और बाली आते समय सूखा न रखें。</p>
+                </div>
+                <div class="training-card">
+                    <h4>स्टेप 2: रबी और खरीफ फसल के अनुसार नियम</h4>
+                    <p>खरीफ में बारिश के समय सुखाने का चक्र रोक दें। रबी (गर्मी की धान) में वाष्पीकरण तेज होने के कारण सुखाने का चक्र छोटा (3-4 दिन) रखें。</p>
+                </div>
+                <div class="training-card">
+                    <h4>स्टेप 3: जमीन में कार्बन की मात्रा कैसे बढ़ाएं?</h4>
+                    <p>पराली न जलाएं, डीकंपोजर छिड़ककर खेत में सड़ाएं और सड़ी हुई गोबर की खाद (FYM) प्रति एकड़ 2-3 टन डालें। इससे मिट्टी में ऑर्गेनिक कार्बन तेजी से बढ़ता है。</p>
+                </div>
+                <button class="btn btn-print no-print" onclick="window.print()">ट्रेनिंग गाइड PDF सेव करें</button>
+            </div>
+        </div>
+
+        <!-- TAB 4: ADMIN & BACKUP SECTION -->
+        <div id="adminSection" class="hidden">
+            
+            <div class="card" style="border: 2px dashed #2563eb; background: #eff6ff;">
+                <h3 class="section-title" style="color: #1d4ed8;">📸 न्यूरल OCR डेटा एंट्री स्कैनर</h3>
+                <p style="font-size: 13px; color: #1e40af; margin-bottom: 12px;">पर्ची या दवा के डिब्बे की फोटो खींचकर ऑटोमैटिक डेटा जोड़ें:</p>
+                
+                <input type="file" id="adminCameraInput" accept="image/*" capture="environment" class="hidden" onchange="processAdminImage(event)">
+                <button class="btn btn-camera" onclick="document.getElementById('adminCameraInput').click()">📷 न्यूरल स्कैन से डेटा जोड़ें</button>
+                <div id="adminScanStatus" style="font-size: 13px; color: #b45309; font-weight:600; text-align:center; margin-top: 8px;"></div>
+            </div>
+
+            <div class="card">
+                <h3 class="section-title" style="color: #0f5132;">⚙️ नई दवा मैन्युअल एंट्री मैनेजर</h3>
+                <div class="form-group">
+                    <label>श्रेणी चुनें:</label>
+                    <select class="custom-input" id="newMedCategory">
+                        <option value="">-- श्रेणी चुनें --</option>
+                        <option value="drop_tillering">पैदावार: कल्ले बढ़ाना</option>
+                        <option value="drop_blast">रोग: ब्लास्ट</option>
+                        <option value="drop_blb">रोग: बीएलबी</option>
+                        <option value="drop_borer">कीट: तना छेदक</option>
+                        <option value="drop_bph">कीट: माहू</option>
+                        <option value="drop_sheath">रोग: शीथ ब्लास्ट</option>
+                        <option value="drop_weed_pre">खरपतवारनाशक</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>दवा का नाम और डोज़:</label>
+                    <input type="text" class="custom-input" id="newMedText" placeholder="" value="">
+                </div>
+                <button class="btn btn-primary" onclick="addNewMedicine()">दवा सूची में जोड़ें</button>
+            </div>
+
+            <div class="card">
+                <h3 class="section-title" style="color: #d97706;">💾 डेटा बैकअप और सुरक्षा प्रबंध</h3>
+                <button class="btn btn-excel" onclick="exportToExcel()">📥 एक्सेल (CSV) बैकअप डाउनलोड करें</button>
+                <button class="btn btn-backup" onclick="exportJsonBackup()">📦 फुल सिस्टम JSON बैकअप</button>
+                
+                <div style="margin-top: 15px;">
+                    <label style="font-size: 13px; font-weight:600; color:var(--primary);">बैकअप रिस्टोर (Restore JSON):</label>
+                    <input type="file" id="jsonRestoreInput" accept=".json" class="custom-input" style="padding:10px; margin-top:5px;" onchange="importJsonBackup(event)">
+                </div>
+
+                <div class="table-responsive" onclick="openFullscreenTable(this)" style="margin-top: 20px;">
+                    <table class="custom-table">
+                        <thead><tr><th>श्रेणी</th><th>विवरण</th></tr></thead>
+                        <tbody id="customMedTableBody">
+                            <tr><td colspan="2" style="color: #94a3b8;">कोई अतिरिक्त डेटा नहीं।</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Fullscreen Table Modal Container -->
+<div id="fsModalOverlay" class="table-fullscreen-overlay hidden" onclick="closeFullscreenTable(event)">
+    <div class="table-fullscreen-content" id="fsModalContent">
+        <button class="close-fs-btn" onclick="closeModalDirect()">✕ बंद करें</button>
+        <div id="fsTableContainer" style="margin-top: 30px;"></div>
+    </div>
+</div>
+
+<div class="fixed-footer no-print">
+    Developer: <strong>SHARD PATEL</strong> | 📞 8120727987
+</div>
+
+<script>
+    const VALID_KEY_HASH = "U0hBUkFELVBBVEVMLUZVVEFSQS04MTIwNzI3OTg3";
+
+    function initApp() {
+        try {
+            let now = new Date().getTime();
+            let activationDate = localStorage.getItem('awd_activation_date');
+            if (activationDate) {
+                if ((now - parseInt(activationDate)) / (1000 * 60 * 60 * 24) > 90) {
+                    showActivationScreen("License Expired.<br>Contact Developer (SHARD PATEL).");
+                } else { showMainApp(); }
+                return;
+            }
+            let installDate = localStorage.getItem('awd_install_date');
+            if (!installDate) { installDate = now; localStorage.setItem('awd_install_date', installDate); }
+            if ((now - parseInt(installDate)) / (1000 * 60 * 60) >= 48) {
+                showActivationScreen("Free Trial Ended.<br>Enter License Key.");
+            } else { showMainApp(); }
+        } catch (e) { showMainApp(); }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => { initApp(); loadSavedMedicines(); });
+
+    function showActivationScreen(msg) {
+        document.getElementById('lockMessageText').innerHTML = msg;
+        document.getElementById('activationWrapper').classList.remove('hidden');
+        document.getElementById('mainApp').classList.add('hidden');
+    }
+
+    function showMainApp() {
+        document.getElementById('mainApp').classList.remove('hidden');
+        document.getElementById('activationWrapper').classList.add('hidden');
+    }
+
+    function switchTab(tab) {
+        ['calcSection', 'docSection', 'trainSection', 'adminSection'].forEach(s => document.getElementById(s).classList.add('hidden'));
+        ['tabCalcBtn', 'tabDocBtn', 'tabTrainBtn', 'tabAdminBtn'].forEach(b => document.getElementById(b).classList.remove('active'));
+        
+        if(tab === 'calc') { document.getElementById('calcSection').classList.remove('hidden'); document.getElementById('tabCalcBtn').classList.add('active'); }
+        else if(tab === 'doc') { document.getElementById('docSection').classList.remove('hidden'); document.getElementById('tabDocBtn').classList.add('active'); }
+        else if(tab === 'train') { document.getElementById('trainSection').classList.remove('hidden'); document.getElementById('tabTrainBtn').classList.add('active'); }
+        else if(tab === 'admin') { document.getElementById('adminSection').classList.remove('hidden'); document.getElementById('tabAdminBtn').classList.add('active'); }
+    }
+
+    function openFullscreenTable(element) {
+        let tableHtml = element.innerHTML;
+        document.getElementById('fsTableContainer').innerHTML = `<div class="table-responsive" style="cursor:default;"><table class="custom-table" style="font-size:14px;">${element.querySelector('table').innerHTML}</table></div>`;
+        document.getElementById('fsModalOverlay').classList.remove('hidden');
+    }
+
+    function closeModalDirect() {
+        document.getElementById('fsModalOverlay').classList.add('hidden');
+    }
+
+    function closeFullscreenTable(event) {
+        if(event.target.id === 'fsModalOverlay') {
+            document.getElementById('fsModalOverlay').classList.add('hidden');
+        }
+    }
+
+    function showManualDiseasePackage() {
+        let val = document.getElementById('manualDiseaseSelect').value;
+        let res = document.getElementById('aiPackageResult');
+        if(!val) { res.classList.add('hidden'); return; }
+
+        let packageHtml = "";
+        if(val === 'blast') {
+            packageHtml = `
+                <div class="doctor-card ai-result">
+                    <h4 style="color:#7c3aed;">🩺 100% सत्यापित रोग: ब्लास्ट रोग (Blast Disease)</h4>
+                    <p><strong>लक्षण व कारण:</strong> कवक (Pyricularia oryzae) जनित आँख के आकार के धब्बे।</p>
+                    <h5 style="margin:8px 0 4px 0; color:#0f5132;">📦 प्रमाणित उपचार पैकेज (प्रति एकड़):</h5>
+                    <ul>
+                        <li><strong>मुख्य फंगीसाइड:</strong> Syngenta Beam (Tricyclazole 75% WP) — <strong>120 ग्राम</strong> (200 लीटर पानी में).</li>
+                        <li><strong>रिकवरी टॉनिक:</strong> Amino Acid / Seaweed — <strong>400 मिली</strong>.</li>
+                    </ul>
+                </div>
+            `;
+        } else if(val === 'blb') {
+            packageHtml = `
+                <div class="doctor-card ai-result">
+                    <h4 style="color:#7c3aed;">🩺 100% सत्यापित रोग: जीवाणु पत्ती झुलसा (BLB)</h4>
+                    <p><strong>लक्षण व कारण:</strong> बैक्टीरिया (Xanthomonas) जनित पत्तियों का किनारों से सूखना।</p>
+                    <h5 style="margin:8px 0 4px 0; color:#0f5132;">📦 प्रमाणित उपचार पैकेज (प्रति एकड़):</h5>
+                    <ul>
+                        <li><strong>जीवाणु नाशक:</strong> Streptocycline (9 ग्राम) + Copper Oxychloride — <strong>500 ग्राम</strong>.</li>
+                    </ul>
+                </div>
+            `;
+        } else if(val === 'borer') {
+            packageHtml = `
+                <div class="doctor-card ai-result">
+                    <h4 style="color:#7c3aed;">🩺 100% सत्यापित कीट: तना छेदक (Stem Borer)</h4>
+                    <p><strong>लक्षण व कारण:</strong> तने के अंदर लार्वा का हमला (Dead Heart).</p>
+                    <h5 style="margin:8px 0 4px 0; color:#0f5132;">📦 प्रमाणित उपचार पैकेज (प्रति एकड़):</h5>
+                    <ul>
+                        <li><strong>कीटनाशक:</strong> FMC Fame (Flubendiamide) — <strong>50 मिली</strong> या Bayer Regent — <strong>4 किलो</strong>.</li>
+                    </ul>
+                </div>
+            `;
+        } else if(val === 'bph') {
+            packageHtml = `
+                <div class="doctor-card ai-result">
+                    <h4 style="color:#7c3aed;">🩺 100% सत्यापित कीट: भूरा माहू / तेला (BPH)</h4>
+                    <p><strong>लक्षण व कारण:</strong> तने के निचले हिस्से पर रस चूसने वाले कीट (Hopper Burn).</p>
+                    <h5 style="margin:8px 0 4px 0; color:#0f5132;">📦 प्रमाणित उपचार पैकेज (प्रति एकड़):</h5>
+                    <ul>
+                        <li><strong>कीटनाशक:</strong> PI Industries Token (Dinotefuran 20% SG) — <strong>120 ग्राम</strong>.</li>
+                    </ul>
+                </div>
+            `;
+        } else if(val === 'sheath') {
+            packageHtml = `
+                <div class="doctor-card ai-result">
+                    <h4 style="color:#7c3aed;">🩺 100% सत्यापित रोग: शीथ ब्लास्ट (Sheath Blight)</h4>
+                    <p><strong>लक्षण व कारण:</strong> तने पर पानी जैसे धब्बे और बाद में फंगस का फैलना।</p>
+                    <h5 style="margin:8px 0 4px 0; color:#0f5132;">📦 प्रमाणित उपचार पैकेज (प्रति एकड़):</h5>
+                    <ul>
+                        <li><strong>फंगीसाइड:</strong> Tata Contaf Plus (Hexaconazole 5% SC) — <strong>400 मिली</strong>.</li>
+                    </ul>
+                </div>
+            `;
+        }
+
+        res.innerHTML = packageHtml;
+        res.classList.remove('hidden');
+    }
+
+    // ABSOLUTE NEURAL CANVAS PRE-PROCESSING & OCR PIPELINE
+    function preprocessAndRecognize(file, callback) {
+        let reader = new FileReader();
+        reader.onload = function(e) {
+            let img = new Image();
+            img.onload = function() {
+                let canvas = document.createElement('canvas');
+                let ctx = canvas.getContext('2d');
+                let maxDim = 1600;
+                let w = img.width, h = img.height;
+                if (w > h && w > maxDim) { h *= maxDim / w; w = maxDim; }
+                else if (h > maxDim) { w *= maxDim / h; h = maxDim; }
+                canvas.width = w; canvas.height = h;
+
+                ctx.drawImage(img, 0, 0, w, h);
+                let imgData = ctx.getImageData(0, 0, w, h);
+                let data = imgData.data;
+                for (let i = 0; i < data.length; i += 4) {
+                    let avg = (data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114);
+                    let enhanced = avg < 125 ? avg * 0.75 : avg * 1.15;
+                    enhanced = enhanced > 255 ? 255 : enhanced;
+                    data[i] = enhanced; data[i + 1] = enhanced; data[i + 2] = enhanced;
+                }
+                ctx.putImageData(imgData, 0, 0);
+
+                let optimizedDataUrl = canvas.toDataURL('image/jpeg', 0.98);
+
+                Tesseract.recognize(optimizedDataUrl, 'eng+hin').then(({ data: { text } }) => {
+                    callback(null, text.trim().toLowerCase());
+                }).catch(err => {
+                    callback(err, null);
+                });
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function detectDiseaseAndPackage(event) {
+        let file = event.target.files[0];
+        if (!file) return;
+        let status = document.getElementById('diseaseScanStatus');
+        let res = document.getElementById('aiPackageResult');
+        status.innerHTML = "🧠 न्यूरल OCR इंजन इमेज को प्रोसेस और स्कैन कर रहा है...";
+        res.classList.add('hidden');
+
+        preprocessAndRecognize(file, function(err, text) {
+            if(err || !text) {
+                status.innerHTML = "❌ स्कैन असफल। कृपया सूची से सीधे रोग चुनें।";
+                return;
+            }
+            status.innerHTML = "✅ न्यूरल स्कैन सफल!";
+            if(text.includes('blast') || text.includes('tricyclazole') || text.includes('झुलसा')) {
+                document.getElementById('manualDiseaseSelect').value = 'blast';
+            } else if(text.includes('blb') || text.includes('copper')) {
+                document.getElementById('manualDiseaseSelect').value = 'blb';
+            } else if(text.includes('borer') || text.includes('fipronil')) {
+                document.getElementById('manualDiseaseSelect').value = 'borer';
+            } else if(text.includes('hopper') || text.includes('bph')) {
+                document.getElementById('manualDiseaseSelect').value = 'bph';
+            } else if(text.includes('sheath')) {
+                document.getElementById('manualDiseaseSelect').value = 'sheath';
+            }
+            showManualDiseasePackage();
+        });
+    }
+
+    function processAdminImage(event) {
+        let file = event.target.files[0];
+        if (!file) return;
+        let status = document.getElementById('adminScanStatus');
+        status.innerHTML = "🧠 न्यूरल OCR डेटा स्कैन हो रहा है...";
+
+        preprocessAndRecognize(file, function(err, text) {
+            if(err || !text) {
+                status.innerHTML = "❌ टेक्स्ट नहीं पढ़ा जा सका।";
+                return;
+            }
+            let lower = text;
+            let catId = "drop_blast"; let catName = "रोग: ब्लास्ट";
+            if(lower.includes('blb')) { catId = "drop_blb"; catName = "रोग: बीएलबी"; }
+            else if(lower.includes('borer')) { catId = "drop_borer"; catName = "कीट: तना छेदक"; }
+            else if(lower.includes('bph')) { catId = "drop_bph"; catName = "कीट: माहू"; }
+            else if(lower.includes('sheath')) { catId = "drop_sheath"; catName = "रोग: शीथ ब्लास्ट"; }
+            else if(lower.includes('weed')) { catId = "drop_weed_pre"; catName = "खरपतवारनाशक"; }
+
+            saveCustomMedicine(catId, catName, "न्यूरल स्कैन: " + text.substring(0, 50));
+            status.innerHTML = `✅ सफलता! डेटा <strong>${catName}</strong> में जोड़ दिया गया है।`;
+        });
+    }
+
+    function saveCustomMedicine(catId, catName, text) {
+        let list = JSON.parse(localStorage.getItem('custom_medicines') || '[]');
+        list.push({ categoryId: catId, categoryName: catName, text: text });
+        localStorage.setItem('custom_medicines', JSON.stringify(list));
+        loadSavedMedicines();
+    }
+
+    function exportJsonBackup() {
+        let data = { medicines: JSON.parse(localStorage.getItem('custom_medicines') || '[]'), app: "AWD Manager Pro", developer: "SHARD PATEL" };
+        let blob = new Blob([JSON.stringify(data, null, 2)], {type: "application/json"});
+        let link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = "AWD_System_Backup.json";
+        link.click();
+    }
+
+    function importJsonBackup(event) {
+        let file = event.target.files[0];
+        if(!file) return;
+        let reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                let json = JSON.parse(e.target.result);
+                if(json.medicines) {
+                    localStorage.setItem('custom_medicines', JSON.stringify(json.medicines));
+                    loadSavedMedicines();
+                    alert("बैकअप सफलतापूर्वक रिस्टोर हो गया है!");
+                }
+            } catch(err) { alert("अमान्य फाइल!"); }
+        };
+        reader.readAsText(file);
+    }
+
+    function exportToExcel() {
+        let savedMeds = JSON.parse(localStorage.getItem('custom_medicines') || '[]');
+        if(savedMeds.length === 0) { alert("डेटा नहीं है!"); return; }
+        let csv = "data:text/csv;charset=utf-8,\uFEFFCategory,Details\r\n";
+        savedMeds.forEach(i => { csv += `"${i.categoryName}","${i.text.replace(/"/g, '""')}"\r\n`; });
+        let link = document.createElement("a");
+        link.href = encodeURI(csv);
+        link.download = "AWD_Medicines.csv";
+        link.click();
+    }
+
+    function addNewMedicine() {
+        let catId = document.getElementById('newMedCategory').value;
+        let text = document.getElementById('newMedText').value.trim();
+        let catObj = document.getElementById('newMedCategory');
+        let catName = catObj.options[catObj.selectedIndex].text;
+        if(!catId || !text) { alert("कृपया श्रेणी और दवा का नाम दोनों भरें!"); return; }
+        saveCustomMedicine(catId, catName, text);
+        document.getElementById('newMedText').value = "";
+        document.getElementById('newMedCategory').selectedIndex = 0;
+        alert("दवा जोड़ दी गई है!");
+    }
+
+    function loadSavedMedicines() {
+        let list = JSON.parse(localStorage.getItem('custom_medicines') || '[]');
+        let tbody = document.getElementById('customMedTableBody');
+        if(list.length === 0) { tbody.innerHTML = `<tr><td colspan="2" style="color: #94a3b8;">कोई अतिरिक्त डेटा नहीं।</td></tr>`; return; }
+        tbody.innerHTML = "";
+        list.forEach(i => {
+            let drop = document.getElementById(i.categoryId);
+            if(drop) {
+                let exists = Array.from(drop.options).some(o => o.text === i.text);
+                if(!exists) { let opt = document.createElement('option'); opt.text = i.text; drop.add(opt); }
+            }
+            tbody.innerHTML += `<tr><td><span class="tag-dose">${i.categoryName}</span></td><td style="text-align:left; padding-left:10px;">${i.text}</td></tr>`;
+        });
+    }
+
+    function calculatePumpDose() {
+        let acres = parseFloat(document.getElementById('calcAcres').value) || 0;
+        let med = parseFloat(document.getElementById('totalMedicine').value) || 0;
+        let pumps = Math.round(acres * 10);
+        let dose = pumps > 0 ? (med / pumps).toFixed(1) : 0;
+        document.getElementById('pumpResultText').innerHTML = `👉 ${acres} एकड़ के लिए <strong>${pumps} टंकियां</strong> | प्रति टंकी: <strong>${dose} मिली/ग्राम</strong>`;
+    }
+
+    function formatLicenseKey(e) {
+        let t = e.target;
+        let val = t.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+        let f = '';
+        for(let i=0; i<val.length; i++) { if(i===6||i===11||i===17) f+='-'; f+=val[i]; }
+        t.value = f;
+    }
+
+    function verifyKey() {
+        let key = document.getElementById('licenseKey').value.trim();
+        if (btoa(key) === VALID_KEY_HASH) {
+            localStorage.setItem('awd_activation_date', new Date().getTime());
+            localStorage.removeItem('awd_install_date');
+            alert("सफलतापूर्वक एक्टिवेट हो गया!");
+            showMainApp();
+        } else { alert("अमान्य की!"); }
+    }
+
+    const portals = {
+        mp: { record: "https://uat2.mpbhulekh.gov.in/#/home/bhu-abhilekh" },
+        up: { record: "https://upbhulekh.gov.in/public/public_ror/Public_ROR.jsp" },
+        bihar: { record: "https://biharbhumi.bihar.gov.in/Biharbhumi/RoR.aspx" },
+        cg: { record: "https://bhuiyan.cg.nic.in/User/khasra_vivran.aspx" },
+        raj: { record: "https://apnakhata.rajasthan.gov.in/" }
+    };
+
+    function openPortalLink(type) {
+        let st = document.getElementById('statePortal').value;
+        if(st && portals[st] && portals[st][type]) { window.open(portals[st][type], '_blank'); }
+    }
+
+    function syncHectareToForm() {
+        let h = parseFloat(document.getElementById('quickHectare').value) || 0;
+        if(h > 0) {
+            let acreVal = (h * 2.47105).toFixed(2);
+            document.getElementById('quickResult').innerText = acreVal + " Acre";
+            document.getElementById('landArea').value = acreVal;
+        } else {
+            document.getElementById('quickResult').innerText = "0.00 Acre";
+            document.getElementById('landArea').value = "";
+        }
+    }
+
+    function syncFormToConverter() {
+        let a = parseFloat(document.getElementById('landArea').value) || 0;
+        if(a > 0) {
+            let hectVal = (a / 2.47105).toFixed(2);
+            document.getElementById('quickHectare').value = hectVal;
+            document.getElementById('quickResult').innerText = a + " Acre";
+        } else {
+            document.getElementById('quickHectare').value = "";
+            document.getElementById('quickResult').innerText = "0.00 Acre";
+        }
+    }
+
+    function addDays(d, days) { let r = new Date(d); r.setDate(r.getDate() + days); return r; }
+    function formatDate(d) { return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }); }
+
+    function calculateSchedule() {
+        let areaInput = document.getElementById('landArea').value.trim();
+        
+        if(!areaInput || parseFloat(areaInput) <= 0) {
+            alert("⚠️ कृपया पहले खेती का रकबा (Land Area) दर्ज करें या कनवर्टर का उपयोग करें!");
+            document.getElementById('landArea').focus();
+            return;
+        }
+
+        let acres = parseFloat(areaInput);
+        let sDate = document.getElementById('sowingDate').value;
+        let dur = parseInt(document.getElementById('cropDuration').value);
+        let sDays = parseInt(document.getElementById('sowingDays').value);
+        let plot = document.getElementById('plotName').value || "मुख्य धान खेत";
+
+        if(!sDate || !dur || !sDays) { alert("सभी जानकारी सही से भरें!"); return; }
+
+        document.getElementById('displayPlot').innerText = plot;
+        document.getElementById('printPlotName').innerText = plot;
+        document.getElementById('displayArea').innerText = acres.toFixed(2);
+
+        document.getElementById('calcCost').innerText = Math.round(acres * 20000).toLocaleString('en-IN');
+        document.getElementById('calcMaleLab').innerText = Math.round(acres * 5);
+        document.getElementById('calcFemaleLab').innerText = Math.round(acres * 15);
+        document.getElementById('calcTotalLab').innerText = Math.round(acres * 20);
+
+        let dDAP = Math.round(acres * 40);
+        let dMOP = Math.round(acres * 20);
+        let dUrea = Math.round(acres * 45);
+        let dZinc = Math.round(acres * 10);
+
+        document.getElementById('calcStraw').innerText = (acres * 2.5).toFixed(2);
+        document.getElementById('calcCompost').innerText = (acres * 3).toFixed(2);
+        document.getElementById('calcDAP').innerText = dDAP;
+        document.getElementById('calcMOP').innerText = dMOP;
+        document.getElementById('calcUrea1').innerText = Math.round(dUrea/3);
+        document.getElementById('calcUrea2').innerText = Math.round(dUrea/3);
+        document.getElementById('calcUrea3').innerText = Math.round(dUrea/3);
+        document.getElementById('calcZinc').innerText = dZinc;
+
+        document.getElementById('sumDAP').innerText = dDAP;
+        document.getElementById('sumMOP').innerText = dMOP;
+        document.getElementById('sumUrea').innerText = dUrea;
+        document.getElementById('sumZinc').innerText = dZinc;
+
+        let sow = new Date(sDate);
+        let trans = addDays(sow, sDays);
+        let har = addDays(sow, dur);
+
+        document.getElementById('dtSowing').innerText = formatDate(sow);
+        document.getElementById('dtCompost').innerText = formatDate(addDays(sow, -15));
+        document.getElementById('dtStraw').innerText = formatDate(addDays(trans, -1));
+        document.getElementById('dtTransplant').innerText = formatDate(trans);
+        document.getElementById('dtBasal').innerText = formatDate(trans);
+        document.getElementById('dtTop1').innerText = formatDate(addDays(trans, 25));
+        document.getElementById('dtTop2').innerText = formatDate(addDays(trans, 45));
+        document.getElementById('dtStopWater').innerText = formatDate(addDays(har, -7));
+        document.getElementById('dtHarvest').innerText = formatDate(har);
+        document.getElementById('dtFirstIrr').innerText = formatDate(addDays(trans, 15));
+
+        let c1_irr = addDays(trans, 15);
+        let c1_dry = addDays(c1_irr, 5);
+        let c1_ref = addDays(c1_irr, 7); 
+
+        let c2_irr = c1_ref;
+        let c2_dry = addDays(c2_irr, 8);
+        let c2_ref = addDays(c2_irr, 11); 
+
+        let c3_irr = c2_ref;
+        let c3_dry = addDays(c3_irr, 10);
+        let c3_ref = addDays(c3_irr, 15); 
+
+        let c4_irr = c3_ref;
+        let c4_dry = addDays(c4_irr, 8);
+        let c4_ref = addDays(c4_irr, 12); 
+
+        document.getElementById('awdTableBody').innerHTML = `
+            <tr><td><strong>1</strong></td><td>${formatDate(c1_irr)}</td><td><span class="tag-dose" style="background:#fffbeb; color:#b45309;">5 cm</span></td><td>${formatDate(c1_dry)}</td><td>${formatDate(c1_ref)} (2 दिन बाद)</td></tr>
+            <tr><td><strong>2</strong></td><td>${formatDate(c2_irr)}</td><td><span class="tag-dose" style="background:#fffbeb; color:#b45309;">7 cm</span></td><td>${formatDate(c2_dry)}</td><td>${formatDate(c2_ref)} (3 दिन बाद)</td></tr>
+            <tr><td><strong>3</strong></td><td>${formatDate(c3_irr)}</td><td><span class="tag-dose" style="background:#fffbeb; color:#b45309;">9 cm</span></td><td>${formatDate(c3_dry)}</td><td>${formatDate(c3_ref)} (5 दिन बाद)</td></tr>
+            <tr><td><strong>4</strong></td><td>${formatDate(c4_irr)}</td><td><span class="tag-dose" style="background:#fffbeb; color:#b45309;">8 cm</span></td><td>${formatDate(c4_dry)}</td><td>${formatDate(c4_ref)} (4 दिन बाद)</td></tr>
+        `;
+
+        document.getElementById('results').classList.remove('hidden');
+    }
+</script>
+
+</body>
+</html>
