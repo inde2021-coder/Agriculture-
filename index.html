@@ -65,7 +65,6 @@
             cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; box-sizing: border-box;
         }
         .btn-primary { background: linear-gradient(135deg, #198754 0%, #0f5132 100%); color: white; margin-top: 10px; }
-        .btn-camera { background: linear-gradient(135deg, #7c3aed, #6d28d9); color: white; margin-bottom: 12px; }
         .btn-whatsapp { background: linear-gradient(135deg, #25D366, #128C7E); color: white; margin-top: 12px; text-decoration: none; }
         
         .nav-tabs { display: flex; gap: 4px; margin-bottom: 15px; }
@@ -75,9 +74,8 @@
         .report-section { border: 1px solid #d1fae5; border-radius: 14px; padding: 14px; margin-bottom: 20px; background: #f8fafc; }
         .section-title { color: var(--primary); font-size: 15px; font-weight: 700; margin: 0 0 12px 0; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; }
         
-        .doctor-card { background: #ffffff; border: 1px solid #e2e8f0; border-left: 5px solid var(--primary); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
-        .doctor-card.ai-result { border-left-color: #7c3aed; background: linear-gradient(135deg, #f5f3ff 0%, #ffffff 100%); }
-        .doctor-card h4 { color: var(--primary); margin: 0 0 8px 0; font-size: 16px; font-weight: 700; }
+        .doctor-card { background: #ffffff; border: 1px solid #e2e8f0; border-left: 5px solid #7c3aed; border-radius: 12px; padding: 16px; margin-bottom: 12px; background: linear-gradient(135deg, #f5f3ff 0%, #ffffff 100%); }
+        .doctor-card h4 { color: #7c3aed; margin: 0 0 8px 0; font-size: 16px; font-weight: 700; }
 
         .preview-img { width: 100%; max-height: 180px; object-fit: cover; border-radius: 10px; margin-top: 10px; border: 2px solid #cbd5e1; }
         .hidden { display: none !important; }
@@ -122,14 +120,13 @@
             </div>
         </div>
 
-        <!-- TAB 2: CROP DOCTOR (GEMINI AI DIRECT + WHATSAPP + ORGANIC) -->
+        <!-- TAB 2: CROP DOCTOR -->
         <div id="docSection" class="hidden">
             <div class="card" style="border: 2px dashed #7c3aed; background: #faf5ff;">
                 <h3 style="color: #7c3aed; margin-top:0;">🌿 Gemini AI विजन क्रॉप डॉक्टर</h3>
-                <p style="font-size: 13px; color: #5b21b6;">पत्ती की फोटो खींचें। एआई रोग, रासायनिक दवा और जैविक उपाय दोनों बताएगा:</p>
+                <p style="font-size: 13px; color: #5b21b6;">पत्ती की फोटो चुनें या कैमरे से लें। एआई तुरंत रोग, रासायनिक दवा और जैविक उपाय दिखाएगा:</p>
                 
-                <input type="file" id="diseaseCameraInput" accept="image/*" capture="environment" class="hidden" onchange="compressAndAnalyzeGemini(event)">
-                <button class="btn btn-camera" onclick="document.getElementById('diseaseCameraInput').click()">📸 फोटो स्कैन करें</button>
+                <input type="file" id="diseaseCameraInput" accept="image/*" capture="environment" class="custom-input" style="padding: 12px; margin-bottom: 12px; background: #fff;" onchange="processImageDirectly(event)">
                 
                 <div id="imagePreviewContainer" class="hidden">
                     <img id="capturedPreview" class="preview-img" src="" alt="Captured Leaf">
@@ -196,12 +193,12 @@
         document.getElementById('results').classList.remove('hidden');
     }
 
-    function compressAndAnalyzeGemini(event) {
+    function processImageDirectly(event) {
         let file = event.target.files[0];
         if (!file) return;
 
         let statusText = document.getElementById('geminiStatusText');
-        statusText.innerHTML = "🔄 फोटो तैयार हो रही है...";
+        statusText.innerHTML = "🔄 फोटो प्रोसेस हो रही है...";
         document.getElementById('imagePreviewContainer').classList.remove('hidden');
         document.getElementById('geminiPackageResult').classList.add('hidden');
 
@@ -212,8 +209,8 @@
                 let canvas = document.getElementById('resizeCanvas');
                 let ctx = canvas.getContext('2d');
                 
-                let MAX_WIDTH = 800;
-                let MAX_HEIGHT = 800;
+                let MAX_WIDTH = 700;
+                let MAX_HEIGHT = 700;
                 let width = img.width;
                 let height = img.height;
 
@@ -227,10 +224,10 @@
                 canvas.height = height;
                 ctx.drawImage(img, 0, 0, width, height);
 
-                let compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                let compressedDataUrl = canvas.toDataURL('image/jpeg', 0.6);
                 document.getElementById('capturedPreview').src = compressedDataUrl;
                 
-                statusText.innerHTML = "🤖 Gemini AI स्कैन कर रहा है...";
+                statusText.innerHTML = "🤖 Gemini AI विश्लेषण कर रहा है...";
 
                 let base64Data = compressedDataUrl.split(',')[1];
                 const GEMINI_API_KEY = "AIzaSyCH5pXri5I6Mo8ccCM9tsq2PupHIjxne_I";
@@ -252,14 +249,16 @@
                 .then(data => {
                     if (data.candidates && data.candidates[0].content && data.candidates[0].content.parts[0].text) {
                         let val = data.candidates[0].content.parts[0].text.trim().toLowerCase();
-                        statusText.innerHTML = "✅ रोग सफलतापूर्वक पहचान लिया गया!";
+                        statusText.innerHTML = "✅ रोग की पहचान हो गई है!";
                         showAIResultPackage(val);
+                    } else if (data.error) {
+                        statusText.innerHTML = "⚠️ API Error: " + (data.error.message || "मान्य नहीं है");
                     } else {
-                        statusText.innerHTML = "⚠️ पहचान नहीं हो पाई। साफ फोटो लें।";
+                        statusText.innerHTML = "⚠️ स्पष्ट फोटो नहीं है। दोबारा साफ फोटो चुनें।";
                     }
                 })
                 .catch(error => {
-                    statusText.innerHTML = "⚠️ नेटवर्क एरर। कृपया दोबारा प्रयास करें।";
+                    statusText.innerHTML = "⚠️ नेटवर्क कनेक्शन की समस्या।";
                 });
             };
             img.src = e.target.result;
@@ -284,7 +283,7 @@
         } else if(val.includes('borer')) {
             diseaseName = "तना छेदक (Stem Borer)";
             chemPackage = "FMC Fame - 50 मिली या Bayer Regent - 4 किलो (प्रति एकड़)";
-            organicTip = "प्रकाश प्रपंच (Light Trap) का प्रयोग करें और ग्रसित तनों को निकालकर नष्ट करें।";
+            organicTip = "प्रकाश प्रपंच (Light Trap) का प्रयोग करें और ग्रसित तनों को नष्ट करें।";
         } else if(val.includes('bph')) {
             diseaseName = "भूरा माहू / तेला (BPH)";
             chemPackage = "Dinotefuran 20% SG - 120 ग्राम (प्रति एकड़)";
@@ -295,14 +294,14 @@
             organicTip = "ट्राइकोडर्मा (Trichoderma) 1 किलो गोबर की खाद में मिलाकर जमीन में दें।";
         } else {
             diseaseName = "सामान्य निरीक्षण / अन्य लक्षण";
-            chemPackage = "कृषि विशेषज्ञ की सलाह लें।";
+            chemPackage = "कृषि विशेषज्ञ की स्थानीय सलाह लें।";
             organicTip = "संतुलित खाद और जैविक खाद का उपयोग बढ़ाएं।";
         }
 
         lastScanReportText = `🌾 *AWD क्रॉप डॉक्टर रिपोर्ट* 🌾\n\n🩺 *पहचाना गया रोग:* ${diseaseName}\n\n🧪 *रासायनिक उपचार पैकेज:* \n${chemPackage}\n\n🌱 *जैविक / घरेलू उपाय:* \n${organicTip}\n\n👨‍💻 डेवलपर: SHARD PATEL (8120727987)`;
 
         let packageHtml = `
-            <div class="doctor-card ai-result">
+            <div class="doctor-card">
                 <h4>🩺 ${diseaseName}</h4>
                 <p><strong>🧪 रासायनिक उपचार:</strong><br>${chemPackage}</p>
                 <p><strong>🌱 जैविक / घरेलू उपाय:</strong><br>${organicTip}</p>
@@ -311,7 +310,6 @@
         `;
 
         res.innerHTML = packageHtml;
-        res.res.classList.remove('hidden');
         res.classList.remove('hidden');
     }
 </script>
