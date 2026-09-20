@@ -326,8 +326,6 @@
         document.getElementById('printPlotName').innerText = plot;
         document.getElementById('displayArea').innerText = area;
 
-        let sowingDateObj = sowingStr ? new Date(sowingStr) : new Date();
-        
         function addDays(date, days) {
             let result = new Date(date);
             result.setDate(result.getDate() + days);
