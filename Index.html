@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AWD Crop & Irrigation Manager - AI Vision Direct</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0f5132;
+            --primary-light: #198754;
+            --accent: #d97706;
+            --bg-gradient: linear-gradient(135deg, #f0fdf4 0%, #f8fafc 100%);
+            --card-bg: rgba(255, 255, 255, 0.98);
+            --text-main: #1e293b;
+            --border-light: #cbd5e1;
+            --shadow-premium: 0 10px 25px -5px rgba(15, 81, 50, 0.1);
+        }
+        body { font-family: 'Poppins', sans-serif; background: var(--bg-gradient); margin: 0; padding: 85px 15px 65px 15px; color: var(--text-main); min-height: 100vh; box-sizing: border-box; }
+        .container { max-width: 850px; margin: auto; width: 100%; box-sizing: border-box; }
+        .fixed-header { position: fixed; top: 0; left: 0; width: 100%; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); z-index: 1000; padding: 12px 0; border-bottom: 1px solid rgba(25, 135, 84, 0.15); text-align: center; }
+        .fixed-header h2 { color: var(--primary); font-size: 18px; font-weight: 700; margin: 0; }
+        .card { background: var(--card-bg); border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: var(--shadow-premium); border: 1px solid rgba(255, 255, 255, 0.9); }
+        .btn { padding: 14px; font-size: 15px; font-weight: 600; border: none; border-radius: 12px; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; box-sizing: border-box; }
+        .btn-camera { background: linear-gradient(135deg, #7c3aed, #6d28d9); color: white; margin-bottom: 12px; }
+        .doctor-card { background: #ffffff; border: 1px solid #e2e8f0; border-left: 5px solid var(--primary); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+        .doctor-card.ai-result { border-left-color: #7c3aed; background: linear-gradient(135deg, #f5f3ff 0%, #ffffff 100%); }
+        .preview-img { width: 100%; max-height: 180px; object-fit: cover; border-radius: 10px; margin-top: 10px; border: 2px solid #cbd5e1; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <div class="fixed-header">
+        <h2>🌾 AWD Manager - AI Vision Direct</h2>
+    </div>
+
+    <div class="container">
+        <div class="card" style="border: 2px dashed #7c3aed; background: #faf5ff;">
+            <h3 style="color: #7c3aed; margin-top:0;">🌿 Claude AI विजन क्रॉप डॉक्टर</h3>
+            <p style="font-size: 13px; color: #5b21b6;">पत्ती की फोटो खींचें। एआई सीधे विश्लेषण करके रोग और इलाज बताएगा:</p>
+            
+            <input type="file" id="diseaseCameraInput" accept="image/*" capture="environment" class="hidden" onchange="compressAndAnalyze(event)">
+            <button class="btn btn-camera" onclick="document.getElementById('diseaseCameraInput').click()">📸 Claude AI से फोटो स्कैन करें</button>
+            
+            <div id="imagePreviewContainer" class="hidden">
+                <img id="capturedPreview" class="preview-img" src="" alt="Captured Leaf">
+                <div id="claudeStatusText" style="margin-top: 10px; font-weight: 600; color: #7c3aed; text-align: center; font-size: 13px;"></div>
+            </div>
+
+            <div id="claudePackageResult" class="hidden" style="margin-top: 15px;"></div>
+        </div>
+    </div>
+
+<canvas id="resizeCanvas" class="hidden"></canvas>
+
+<script>
+    function compressAndAnalyze(event) {
+        let file = event.target.files[0];
+        if (!file) return;
+
+        let statusText = document.getElementById('claudeStatusText');
+        statusText.innerHTML = "🔄 फोटो को कॉम्प्रेस किया जा रहा है...";
+        document.getElementById('imagePreviewContainer').classList.remove('hidden');
+        document.getElementById('claudePackageResult').classList.add('hidden');
+
+        let reader = new FileReader();
+        reader.onload = function(e) {
+            let img = new Image();
+            img.onload = function() {
+                let canvas = document.getElementById('resizeCanvas');
+                let ctx = canvas.getContext('2d');
+                
+                let MAX_WIDTH = 800;
+                let MAX_HEIGHT = 800;
+                let width = img.width;
+                let height = img.height;
+
+                if (width > height) {
+                    if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+                } else {
+                    if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                ctx.drawImage(img, 0, 0, width, height);
+
+                let compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                document.getElementById('capturedPreview').src = compressedDataUrl;
+                
+                statusText.innerHTML = "🤖 Vercel सर्वर के जरिए Claude AI स्कैन कर रहा है...";
+
+                let base64Data = compressedDataUrl.split(',')[1];
+
+                fetch('/api/detect', {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ imageBase64: base64Data, mimeType: "image/jpeg" })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if(data.success && data.detectedDiseaseKey) {
+                        let text = data.detectedDiseaseKey;
+                        statusText.innerHTML = "✅ सफलतापूर्वक रोग पहचान लिया गया!";
+                        showAIResultPackage(text);
+                    } else {
+                        statusText.innerHTML = "⚠️ पहचान नहीं हो पाई। कृपया दूसरी साफ फोटो लें।";
+                    }
+                })
+                .catch(error => {
+                    statusText.innerHTML = "⚠️ सर्वर एरर। कृपया दोबारा प्रयास करें।";
+                });
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function showAIResultPackage(val) {
+        let res = document.getElementById('claudePackageResult');
+        let packageHtml = "";
+
+        if(val.includes('blast')) {
+            packageHtml = `<div class="doctor-card ai-result"><h4 style="color:#7c3aed; margin-top:0;">🩺 ब्लास्ट रोग (Blast Disease)</h4><p><strong>उपचार पैकेज (प्रति एकड़):</strong> Syngenta Beam (Tricyclazole 75% WP) — <strong>120 ग्राम</strong> + Amino Acid — <strong>400 मिली</strong>.</p></div>`;
+        } else if(val.includes('blb')) {
+            packageHtml = `<div class="doctor-card ai-result"><h4 style="color:#7c3aed; margin-top:0;">🩺 जीवाणु पत्ती झुलसा (BLB)</h4><p><strong>उपचार पैकेज (प्रति एकड़):</strong> Streptocycline (9 ग्राम) + Copper Oxychloride — 500 ग्राम.</p></div>`;
+        } else if(val.includes('borer')) {
+            packageHtml = `<div class="doctor-card ai-result"><h4 style="color:#7c3aed; margin-top:0;">🩺 तना छेदक (Stem Borer)</h4><p><strong>उपचार पैकेज (प्रति एकड़):</strong> FMC Fame — 50 मिली या Bayer Regent — 4 किलो.</p></div>`;
+        } else if(val.includes('bph')) {
+            packageHtml = `<div class="doctor-card ai-result"><h4 style="color:#7c3aed; margin-top:0;">🩺 भूरा माहू / तेला (BPH)</h4><p><strong>उपचार पैकेज (प्रति एकड़):</strong> PI Industries Token (Dinotefuran 20% SG) — 120 ग्राम.</p></div>`;
+        } else if(val.includes('sheath')) {
+            packageHtml = `<div class="doctor-card ai-result"><h4 style="color:#7c3aed; margin-top:0;">🩺 शीथ ब्लास्ट (Sheath Blight)</h4><p><strong>उपचार पैकेज (प्रति एकड़):</strong> Tata Contaf Plus — 400 मिली.</p></div>`;
+        } else {
+            packageHtml = `<div class="doctor-card ai-result"><h4 style="color:#7c3aed; margin-top:0;">🩺 सामान्य स्कैन परिणाम</h4><p>रोग की पहचान: <strong>${val}</strong>। कृपया उचित कृषि सलाहकार से संपर्क करें।</p></div>`;
+        }
+
+        res.innerHTML = packageHtml;
+        res.classList.remove('hidden');
+    }
+</script>
+</body>
+</html>
