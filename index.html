@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AWD Cycle Manager Pro - Complete Suite</title>
+    <title>AWD Crop & Irrigation Manager - Claude AI Vision Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -13,55 +13,221 @@
             --bg-gradient: linear-gradient(135deg, #f0fdf4 0%, #f8fafc 100%);
             --card-bg: rgba(255, 255, 255, 0.98);
             --text-main: #1e293b;
+            --text-muted: #64748b;
             --border-light: #cbd5e1;
-            --shadow-premium: 0 10px 25px -5px rgba(15, 81, 50, 0.1);
+            --shadow-premium: 0 10px 25px -5px rgba(15, 81, 50, 0.1), 0 8px 10px -6px rgba(15, 81, 50, 0.05);
         }
-        body { font-family: 'Poppins', sans-serif; background: var(--bg-gradient); margin: 0; padding: 85px 15px 65px 15px; color: var(--text-main); min-height: 100vh; box-sizing: border-box; }
+
+        ::-webkit-scrollbar { display: none; width: 0px; background: transparent; }
+        html { scrollbar-width: none; -ms-overflow-style: none; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg-gradient);
+            margin: 0;
+            padding: 85px 15px 65px 15px;
+            color: var(--text-main);
+            line-height: 1.6;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
         .container { max-width: 850px; margin: auto; width: 100%; box-sizing: border-box; }
-        .fixed-header { position: fixed; top: 0; left: 0; width: 100%; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); z-index: 1000; padding: 12px 0; border-bottom: 1px solid rgba(25, 135, 84, 0.15); text-align: center; }
+
+        .fixed-header {
+            position: fixed; top: 0; left: 0; width: 100%;
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px);
+            z-index: 1000; box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            padding: 12px 0; border-bottom: 1px solid rgba(25, 135, 84, 0.15);
+            text-align: center;
+        }
         .fixed-header h2 { color: var(--primary); font-size: 18px; font-weight: 700; margin: 0; }
-        .nav-tabs { display: flex; gap: 8px; overflow-x: auto; padding: 10px 0; margin-bottom: 15px; }
-        .nav-tab { background: #ffffff; border: 2px solid var(--border-light); padding: 10px 16px; border-radius: 12px; font-weight: 600; font-size: 13px; color: var(--text-main); cursor: pointer; white-space: nowrap; flex-shrink: 0; }
-        .nav-tab.active { background: var(--primary); color: white; border-color: var(--primary); }
-        .card { background: var(--card-bg); border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: var(--shadow-premium); border: 1px solid rgba(255, 255, 255, 0.9); }
-        .btn { padding: 14px; font-size: 15px; font-weight: 600; border: none; border-radius: 12px; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; box-sizing: border-box; }
-        .btn-camera { background: linear-gradient(135deg, #7c3aed, #6d28d9); color: white; margin-bottom: 12px; }
-        .custom-input { width: 100%; padding: 14px; font-size: 15px; border: 2px solid var(--border-light); border-radius: 12px; background: #ffffff; outline: none; font-weight: 500; box-sizing: border-box; margin-top: 5px; margin-bottom: 15px; }
+
+        .fixed-footer {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px);
+            z-index: 1000; box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
+            text-align: center; padding: 10px 0; font-size: 12px; color: var(--text-muted);
+            border-top: 1px solid rgba(0,0,0,0.05);
+        }
+        .fixed-footer strong { color: var(--primary); }
+
+        .card {
+            background: var(--card-bg); border-radius: 16px; padding: 20px;
+            margin-bottom: 20px; box-shadow: var(--shadow-premium);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            box-sizing: border-box; width: 100%; overflow: hidden;
+        }
+
+        .quick-converter { background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border: 1px solid #fde68a; }
+        .quick-converter h3 { margin: 0 0 10px 0; color: #b45309; font-size: 14px; font-weight: 600; text-align: center; }
+        .converter-row { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; }
+        .converter-row input {
+            width: 140px; padding: 12px; font-size: 15px; border: 2px solid #fcd34d;
+            border-radius: 12px; text-align: center; outline: none; background: #fff; font-weight: 600; color: #92400e; box-sizing: border-box;
+        }
+        .quick-result { font-size: 15px; font-weight: 700; color: #991b1b; background: rgba(255, 255, 255, 0.95); padding: 12px 18px; border-radius: 12px; border: 1px solid #fcd34d; box-sizing: border-box; }
+
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-weight: 600; font-size: 13px; margin-bottom: 6px; color: var(--primary); }
+        .input-row { display: flex; gap: 12px; }
+        .input-half { flex: 1; }
+        
+        input.custom-input, select.custom-input {
+            width: 100%; padding: 14px; font-size: 15px; border: 2px solid var(--border-light);
+            border-radius: 12px; box-sizing: border-box; background: #ffffff; outline: none; color: var(--text-main); font-weight: 500;
+        }
+
+        .btn {
+            padding: 14px; font-size: 15px; font-weight: 600; border: none; border-radius: 12px;
+            cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; box-sizing: border-box;
+        }
+        .btn-primary { background: linear-gradient(135deg, #198754 0%, #0f5132 100%); color: white; margin-top: 10px; box-shadow: 0 6px 15px rgba(25, 135, 84, 0.25); }
+        .btn-camera { background: linear-gradient(135deg, #7c3aed, #6d28d9); color: white; margin-bottom: 12px; box-shadow: 0 6px 15px rgba(124, 58, 237, 0.25); }
+        .btn-link { background: #eff6ff; color: #1d4ed8; padding: 14px; border: 1.5px solid #bfdbfe; font-weight: 600; border-radius: 12px; cursor: pointer; width: 100%; text-align: center; text-decoration: none; display: block; box-sizing: border-box; }
+        
+        .nav-tabs { display: flex; gap: 4px; margin-bottom: 15px; }
+        .tab-btn { flex: 1; padding: 10px 2px; font-size: 11px; font-weight: 600; border: 2px solid var(--border-light); border-radius: 8px; background: #fff; color: var(--primary); cursor: pointer; text-align: center; }
+        .tab-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+        .report-section { border: 1px solid #d1fae5; border-radius: 14px; padding: 14px; margin-bottom: 20px; background: #f8fafc; box-sizing: border-box; width: 100%; overflow: hidden; }
+        .section-title { color: var(--primary); font-size: 15px; font-weight: 700; margin: 0 0 12px 0; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; }
+        
+        .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 10px; box-sizing: border-box; }
+        .custom-table { width: 100%; max-width: 100%; border-collapse: collapse; border-radius: 10px; overflow: hidden; border: 1px solid var(--border-light); font-size: 12px; box-sizing: border-box; }
+        .custom-table th { background: #e6f4ea; color: var(--primary); padding: 10px 6px; font-weight: 600; text-align: center; border-bottom: 1px solid var(--border-light); white-space: nowrap; }
+        .custom-table td { padding: 9px 6px; text-align: center; border-bottom: 1px solid #f1f5f9; background: #fff; font-weight: 500; white-space: nowrap; }
+
+        .tag-dose { background: #e6f4ea; color: #0f5132; padding: 3px 6px; border-radius: 6px; font-weight: 700; font-size: 11px; display: inline-block; border: 1px solid #b7e4c7; }
+        .tag-date { background: #fffbeb; color: #b45309; padding: 3px 6px; border-radius: 6px; font-weight: 700; font-size: 11px; border: 1px solid #fde68a; }
+        .tag-main { background: #eff6ff; color: #1d4ed8; font-weight: 600; font-size: 13px; padding: 10px; border-radius: 12px; text-align: center; border: 1.5px solid #bfdbfe; margin-bottom: 16px; }
+
+        .fert-summary-box { background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border: 2px dashed #f59e0b; padding: 12px; border-radius: 12px; margin-bottom: 18px; text-align: center; font-size: 12px; color: #92400e; box-sizing: border-box; }
+        .fert-summary-box strong { color: #b45309; font-size: 13px; display: block; margin-bottom: 4px; }
+        .fert-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 8px; }
+        .fert-box { background: #ffffff; border: 1px solid #fcd34d; border-radius: 10px; padding: 10px; text-align: center; }
+        .fert-box span { display: block; font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; }
+        .fert-box strong { display: block; font-size: 15px; color: #dc2626; font-weight: 700; margin-top: 2px; }
+
+        .training-card { background: #ffffff; border: 1px solid #e2e8f0; border-left: 5px solid var(--accent); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+        .training-card h4 { color: #b45309; margin: 0 0 8px 0; font-size: 16px; font-weight: 700; }
+        .training-card p { margin: 6px 0; font-size: 13px; color: #475569; }
+
         .doctor-card { background: #ffffff; border: 1px solid #e2e8f0; border-left: 5px solid var(--primary); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
         .doctor-card.ai-result { border-left-color: #7c3aed; background: linear-gradient(135deg, #f5f3ff 0%, #ffffff 100%); }
+        .doctor-card h4 { color: var(--primary); margin: 0 0 8px 0; font-size: 16px; font-weight: 700; }
+
         .preview-img { width: 100%; max-height: 180px; object-fit: cover; border-radius: 10px; margin-top: 10px; border: 2px solid #cbd5e1; }
-        .fixed-footer { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); text-align: center; padding: 10px; font-size: 12px; font-weight: 600; border-top: 1px solid #cbd5e1; z-index: 1000; }
         .hidden { display: none !important; }
+        .print-only { display: none; }
+
+        @media print {
+            body { background: white; font-size: 11px; padding: 0 !important; color: #000; }
+            .fixed-header, .fixed-footer, .nav-tabs, .no-print, .btn { display: none !important; }
+            .card { box-shadow: none; border: none; padding: 0; margin-bottom: 10px; width: 100%; }
+            .hidden { display: block !important; }
+            .print-only { display: block !important; text-align: center; margin-bottom: 15px; }
+        }
     </style>
 </head>
 <body>
 
-    <div class="fixed-header">
-        <h2>🌾 AWD Cycle Manager Pro</h2>
+    <div class="fixed-header no-print">
+        <h2>🌾 AWD Cycle Manager Pro (Claude AI Vision)</h2>
     </div>
 
     <div class="container">
         <!-- Navigation Tabs -->
-        <div class="nav-tabs">
-            <button class="nav-tab active" onclick="switchTab('calc')">📊 सिंचाई कैलकुलेटर</button>
-            <button class="nav-tab" onclick="switchTab('doctor')">🌿 क्रॉप डॉक्टर (AI)</button>
-            <button class="nav-tab" onclick="switchTab('training')">📖 AWD ट्रेनिंग</button>
-            <button class="nav-tab" onclick="switchTab('entry')">⚙️ डेटा/ऐंट्री</button>
+        <div class="nav-tabs no-print">
+            <button class="tab-btn active" id="tabCalcBtn" onclick="switchTab('calc')">📊 सिंचाई कैलकुलेटर</button>
+            <button class="tab-btn" id="tabDocBtn" onclick="switchTab('doc')">🌿 क्रॉप डॉक्टर</button>
+            <button class="tab-btn" id="tabTrainBtn" onclick="switchTab('train')">📖 AWD ट्रेनिंग</button>
+            <button class="tab-btn" id="tabAdminBtn" onclick="switchTab('admin')">⚙️ डेटा/एंट्री</button>
         </div>
 
-        <!-- Tab 1: Calculator -->
-        <div id="tab-calc" class="tab-content">
-            <div class="card">
-                <h3>💧 सिंचाई एवं खाद कैलकुलेटर</h3>
-                <label>खेती का रकबा (एकड़ में):</label>
-                <input type="number" id="landArea" class="custom-input" placeholder="जैसे: 2.5" value="1">
-                <button class="btn" style="background: var(--primary); color: white;" onclick="calculateAWD()">साइकिल जनरेट करें</button>
-                <div id="calcResult" style="margin-top: 15px;"></div>
+        <!-- TAB 1: CALCULATOR SECTION -->
+        <div id="calcSection">
+            <div class="card no-print">
+                <div class="quick-converter card" style="margin-bottom: 16px;">
+                    <h3>हेक्टेयर से एकड़ कनवर्टर (ऑटो-फिल)</h3>
+                    <div class="converter-row">
+                        <input type="number" id="quickHectare" placeholder="हेक्टेयर" step="0.01" oninput="syncHectareToForm()">
+                        <div id="quickResult" class="quick-result">0.00 Acre</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>खेत का नाम / प्लॉट प्रोफाइल:</label>
+                    <input type="text" class="custom-input" id="plotName" value="मुख्य धान खेत (Plot 1)">
+                </div>
+
+                <div class="form-group">
+                    <label>खेती का रकबा (Land Area in Acres) *:</label>
+                    <input type="number" class="custom-input" id="landArea" placeholder="रकबा दर्ज करें (जैसे: 2.5)" step="0.01" oninput="syncFormToConverter()" value="1">
+                </div>
+
+                <div class="input-row">
+                    <div class="form-group input-half">
+                        <label>फसल अवधि (दिन):</label>
+                        <input type="number" class="custom-input" id="cropDuration" value="100">
+                    </div>
+                    <div class="form-group input-half">
+                        <label>बुवाई की तारीख:</label>
+                        <input type="date" class="custom-input" id="sowingDate" value="2026-06-01">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>बुवाई से रोपाई के दिन:</label>
+                    <input type="number" class="custom-input" id="sowingDays" value="33">
+                </div>
+                
+                <button class="btn btn-primary" onclick="calculateSchedule()">AWD सिंचाई और खाद रिपोर्ट बनाएं</button>
+            </div>
+
+            <div id="results" class="hidden">
+                <div class="card">
+                    <div class="print-only print-header">
+                        <h1>AWD Irrigation Report - <span id="printPlotName"></span></h1>
+                    </div>
+
+                    <div class="tag-main">
+                        प्लॉट: <span id="displayPlot"></span> | कुल रकबा: <span id="displayArea"></span> एकड़
+                    </div>
+
+                    <div class="report-section">
+                        <h3 class="section-title">खेत की तैयारी और बुवाई</h3>
+                        <div class="table-responsive">
+                            <table class="custom-table">
+                                <tr><th>गतिविधि</th><th>तारीख</th><th>मात्रा</th></tr>
+                                <tr><td>खाद / कंपोस्ट</td><td><span id="dtCompost" class="tag-date"></span></td><td><span class="tag-dose"><span id="calcCompost"></span> टन</span></td></tr>
+                                <tr><td>बुवाई (Sowing)</td><td><span id="dtSowing" class="tag-date"></span></td><td>-</td></tr>
+                                <tr><td>पराली प्रबंधन</td><td><span id="dtStraw" class="tag-date"></span></td><td><span class="tag-dose"><span id="calcStraw"></span> टन</span></td></tr>
+                                <tr><td>रोपाई (Transplant)</td><td><span id="dtTransplant" class="tag-date"></span></td><td>-</td></tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="report-section">
+                        <h3 class="section-title">खाद प्रबंधन (प्रति एकड़)</h3>
+                        <div class="fert-summary-box">
+                            <strong>कुल खाद अनुमानित आवश्यकता</strong>
+                            <div class="fert-grid">
+                                <div class="fert-box"><span>यूरिया (Urea)</span><strong id="fertUrea">0 kg</strong></div>
+                                <div class="fert-box"><span>DAP</span><strong id="fertDap">0 kg</strong></div>
+                                <div class="fert-box"><span>MOP</span><strong id="fertMop">0 kg</strong></div>
+                                <div class="fert-box"><span>जिंक (Zinc)</span><strong id="fertZinc">0 kg</strong></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary no-print" onclick="window.print()">🖨️ रिपोर्ट प्रिंट / PDF डाउनलोड करें</button>
+                </div>
             </div>
         </div>
 
-        <!-- Tab 2: Crop Doctor -->
-        <div id="tab-doctor" class="tab-content hidden">
+        <!-- TAB 2: CROP DOCTOR SECTION -->
+        <div id="docSection" class="hidden">
             <div class="card" style="border: 2px dashed #7c3aed; background: #faf5ff;">
                 <h3 style="color: #7c3aed; margin-top:0;">🌿 Claude AI विजन क्रॉप डॉक्टर</h3>
                 <p style="font-size: 13px; color: #5b21b6;">पत्ती की फोटो खींचें। एआई सीधे विश्लेषण करके रोग और इलाज बताएगा:</p>
@@ -78,19 +244,27 @@
             </div>
         </div>
 
-        <!-- Tab 3: Training -->
-        <div id="tab-training" class="tab-content hidden">
+        <!-- TAB 3: TRAINING SECTION -->
+        <div id="trainSection" class="hidden">
             <div class="card">
-                <h3>📖 AWD सिंचाई तकनीक</h3>
-                <p>अल्टरनेट वेटिंग एंड ड्राईंग (AWD) पद्धति अपनाएं, पानी बचाएं और मिट्टी को उपजाऊ बनाएं।</p>
+                <h3>📖 AWD सिंचाई तकनीक गाइड</h3>
+                <div class="training-card">
+                    <h4>अल्टरनेट वेटिंग एंड ड्राईंग (AWD) क्या है?</h4>
+                    <p>यह धान की खेती में पानी बचाने की एक वैज्ञानिक विधि है जिसमें खेत को हर समय भरकर रखने के बजाय बीच-बीच में सूखने दिया जाता है।</p>
+                </div>
+                <div class="training-card">
+                    <h4>मुख्य लाभ</h4>
+                    <p>• लगभग 30% से 35% तक पानी की बचत।</p>
+                    <p>• मीथेन गैस का कम उत्सर्जन और मजबूत जड़ें।</p>
+                </div>
             </div>
         </div>
 
-        <!-- Tab 4: Entry -->
-        <div id="tab-entry" class="tab-content hidden">
+        <!-- TAB 4: ADMIN / ENTRY SECTION -->
+        <div id="adminSection" class="hidden">
             <div class="card">
-                <h3>⚙️ डेटा और प्लॉट्स</h3>
-                <p>यहाँ आप अपने खेत की डेटा प्रविष्टि मैनेज कर सकते हैं।</p>
+                <h3>⚙️ डेटा और सेटिंग्स</h3>
+                <p>यहाँ आपके सभी प्लॉट्स और सेटिंग्स सुरक्षित हैं।</p>
             </div>
         </div>
     </div>
@@ -102,29 +276,80 @@
 <canvas id="resizeCanvas" class="hidden"></canvas>
 
 <script>
-    function switchTab(tabName) {
-        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-        document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
-        
-        if(tabName === 'calc') {
-            document.getElementById('tab-calc').classList.remove('hidden');
-            event.target.classList.add('active');
-        } else if(tabName === 'doctor') {
-            document.getElementById('tab-doctor').classList.remove('hidden');
-            event.target.classList.add('active');
-        } else if(tabName === 'training') {
-            document.getElementById('tab-training').classList.remove('hidden');
-            event.target.classList.add('active');
-        } else if(tabName === 'entry') {
-            document.getElementById('tab-entry').classList.remove('hidden');
-            event.target.classList.add('active');
+    function switchTab(tab) {
+        document.getElementById('calcSection').classList.add('hidden');
+        document.getElementById('docSection').classList.add('hidden');
+        document.getElementById('trainSection').classList.add('hidden');
+        document.getElementById('adminSection').classList.add('hidden');
+
+        document.getElementById('tabCalcBtn').classList.remove('active');
+        document.getElementById('tabDocBtn').classList.remove('active');
+        document.getElementById('tabTrainBtn').classList.remove('active');
+        document.getElementById('tabAdminBtn').classList.remove('active');
+
+        if(tab === 'calc') {
+            document.getElementById('calcSection').classList.remove('hidden');
+            document.getElementById('tabCalcBtn').classList.add('active');
+        } else if(tab === 'doc') {
+            document.getElementById('docSection').classList.remove('hidden');
+            document.getElementById('tabDocBtn').classList.add('active');
+        } else if(tab === 'train') {
+            document.getElementById('trainSection').classList.remove('hidden');
+            document.getElementById('tabTrainBtn').classList.add('active');
+        } else if(tab === 'admin') {
+            document.getElementById('adminSection').classList.remove('hidden');
+            document.getElementById('tabAdminBtn').classList.add('active');
         }
     }
 
-    function calculateAWD() {
-        let area = document.getElementById('landArea').value || 1;
-        let res = document.getElementById('calcResult');
-        res.innerHTML = `<div class="doctor-card"><p>✅ <strong>${area} एकड़</strong> के लिए AWD सिंचाई शेड्यूल तैयार है। पानी की बचत: लगभग 35%!</p></div>`;
+    function syncHectareToForm() {
+        let ha = parseFloat(document.getElementById('quickHectare').value) || 0;
+        let acres = (ha * 2.47105).toFixed(2);
+        document.getElementById('quickResult').innerText = acres + " Acre";
+        document.getElementById('landArea').value = acres;
+    }
+
+    function syncFormToConverter() {
+        let acres = parseFloat(document.getElementById('landArea').value) || 0;
+        let ha = (acres / 2.47105).toFixed(2);
+        document.getElementById('quickHectare').value = ha;
+        document.getElementById('quickResult').innerText = acres + " Acre";
+    }
+
+    function calculateSchedule() {
+        let area = parseFloat(document.getElementById('landArea').value) || 1;
+        let plot = document.getElementById('plotName').value;
+        let sowingStr = document.getElementById('sowingDate').value;
+        let sowingDays = parseInt(document.getElementById('sowingDays').value) || 33;
+
+        document.getElementById('displayPlot').innerText = plot;
+        document.getElementById('printPlotName').innerText = plot;
+        document.getElementById('displayArea').innerText = area;
+
+        let sowingDateObj = sowingStr ? new Date(sowingStr) : new Date();
+        
+        function addDays(date, days) {
+            let result = new Date(date);
+            result.setDate(result.getDate() + days);
+            return result.toISOString().split('T')[0];
+        }
+
+        document.getElementById('dtSowing').innerText = sowingStr;
+        document.getElementById('dtCompost').innerText = addDays(sowingStr, -10);
+        document.getElementById('dtStraw').innerText = addDays(sowingStr, -5);
+        
+        let transDate = addDays(sowingStr, sowingDays);
+        document.getElementById('dtTransplant').innerText = transDate;
+
+        document.getElementById('calcCompost').innerText = (2 * area).toFixed(1);
+        document.getElementById('calcStraw').innerText = (1.5 * area).toFixed(1);
+
+        document.getElementById('fertUrea').innerText = Math.round(45 * area) + " kg";
+        document.getElementById('fertDap').innerText = Math.round(25 * area) + " kg";
+        document.getElementById('fertMop').innerText = Math.round(20 * area) + " kg";
+        document.getElementById('fertZinc').innerText = Math.round(5 * area) + " kg";
+
+        document.getElementById('results').classList.remove('hidden');
     }
 
     function compressAndAnalyze(event) {
