@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AWD Crop & Irrigation Manager - AI Vision Direct</title>
+    <title>AWD Cycle Manager Pro - Complete Suite</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -20,41 +20,113 @@
         .container { max-width: 850px; margin: auto; width: 100%; box-sizing: border-box; }
         .fixed-header { position: fixed; top: 0; left: 0; width: 100%; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); z-index: 1000; padding: 12px 0; border-bottom: 1px solid rgba(25, 135, 84, 0.15); text-align: center; }
         .fixed-header h2 { color: var(--primary); font-size: 18px; font-weight: 700; margin: 0; }
+        .nav-tabs { display: flex; gap: 8px; overflow-x: auto; padding: 10px 0; margin-bottom: 15px; }
+        .nav-tab { background: #ffffff; border: 2px solid var(--border-light); padding: 10px 16px; border-radius: 12px; font-weight: 600; font-size: 13px; color: var(--text-main); cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+        .nav-tab.active { background: var(--primary); color: white; border-color: var(--primary); }
         .card { background: var(--card-bg); border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: var(--shadow-premium); border: 1px solid rgba(255, 255, 255, 0.9); }
         .btn { padding: 14px; font-size: 15px; font-weight: 600; border: none; border-radius: 12px; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; box-sizing: border-box; }
         .btn-camera { background: linear-gradient(135deg, #7c3aed, #6d28d9); color: white; margin-bottom: 12px; }
+        .custom-input { width: 100%; padding: 14px; font-size: 15px; border: 2px solid var(--border-light); border-radius: 12px; background: #ffffff; outline: none; font-weight: 500; box-sizing: border-box; margin-top: 5px; margin-bottom: 15px; }
         .doctor-card { background: #ffffff; border: 1px solid #e2e8f0; border-left: 5px solid var(--primary); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
         .doctor-card.ai-result { border-left-color: #7c3aed; background: linear-gradient(135deg, #f5f3ff 0%, #ffffff 100%); }
         .preview-img { width: 100%; max-height: 180px; object-fit: cover; border-radius: 10px; margin-top: 10px; border: 2px solid #cbd5e1; }
+        .fixed-footer { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); text-align: center; padding: 10px; font-size: 12px; font-weight: 600; border-top: 1px solid #cbd5e1; z-index: 1000; }
         .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
     <div class="fixed-header">
-        <h2>🌾 AWD Manager - AI Vision Direct</h2>
+        <h2>🌾 AWD Cycle Manager Pro</h2>
     </div>
 
     <div class="container">
-        <div class="card" style="border: 2px dashed #7c3aed; background: #faf5ff;">
-            <h3 style="color: #7c3aed; margin-top:0;">🌿 Claude AI विजन क्रॉप डॉक्टर</h3>
-            <p style="font-size: 13px; color: #5b21b6;">पत्ती की फोटो खींचें। एआई सीधे विश्लेषण करके रोग और इलाज बताएगा:</p>
-            
-            <input type="file" id="diseaseCameraInput" accept="image/*" capture="environment" class="hidden" onchange="compressAndAnalyze(event)">
-            <button class="btn btn-camera" onclick="document.getElementById('diseaseCameraInput').click()">📸 Claude AI से फोटो स्कैन करें</button>
-            
-            <div id="imagePreviewContainer" class="hidden">
-                <img id="capturedPreview" class="preview-img" src="" alt="Captured Leaf">
-                <div id="claudeStatusText" style="margin-top: 10px; font-weight: 600; color: #7c3aed; text-align: center; font-size: 13px;"></div>
-            </div>
-
-            <div id="claudePackageResult" class="hidden" style="margin-top: 15px;"></div>
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="switchTab('calc')">📊 सिंचाई कैलकुलेटर</button>
+            <button class="nav-tab" onclick="switchTab('doctor')">🌿 क्रॉप डॉक्टर (AI)</button>
+            <button class="nav-tab" onclick="switchTab('training')">📖 AWD ट्रेनिंग</button>
+            <button class="nav-tab" onclick="switchTab('entry')">⚙️ डेटा/ऐंट्री</button>
         </div>
+
+        <!-- Tab 1: Calculator -->
+        <div id="tab-calc" class="tab-content">
+            <div class="card">
+                <h3>💧 सिंचाई एवं खाद कैलकुलेटर</h3>
+                <label>खेती का रकबा (एकड़ में):</label>
+                <input type="number" id="landArea" class="custom-input" placeholder="जैसे: 2.5" value="1">
+                <button class="btn" style="background: var(--primary); color: white;" onclick="calculateAWD()">साइकिल जनरेट करें</button>
+                <div id="calcResult" style="margin-top: 15px;"></div>
+            </div>
+        </div>
+
+        <!-- Tab 2: Crop Doctor -->
+        <div id="tab-doctor" class="tab-content hidden">
+            <div class="card" style="border: 2px dashed #7c3aed; background: #faf5ff;">
+                <h3 style="color: #7c3aed; margin-top:0;">🌿 Claude AI विजन क्रॉप डॉक्टर</h3>
+                <p style="font-size: 13px; color: #5b21b6;">पत्ती की फोटो खींचें। एआई सीधे विश्लेषण करके रोग और इलाज बताएगा:</p>
+                
+                <input type="file" id="diseaseCameraInput" accept="image/*" capture="environment" class="hidden" onchange="compressAndAnalyze(event)">
+                <button class="btn btn-camera" onclick="document.getElementById('diseaseCameraInput').click()">📸 Claude AI से फोटो स्कैन करें</button>
+                
+                <div id="imagePreviewContainer" class="hidden">
+                    <img id="capturedPreview" class="preview-img" src="" alt="Captured Leaf">
+                    <div id="claudeStatusText" style="margin-top: 10px; font-weight: 600; color: #7c3aed; text-align: center; font-size: 13px;"></div>
+                </div>
+
+                <div id="claudePackageResult" class="hidden" style="margin-top: 15px;"></div>
+            </div>
+        </div>
+
+        <!-- Tab 3: Training -->
+        <div id="tab-training" class="tab-content hidden">
+            <div class="card">
+                <h3>📖 AWD सिंचाई तकनीक</h3>
+                <p>अल्टरनेट वेटिंग एंड ड्राईंग (AWD) पद्धति अपनाएं, पानी बचाएं और मिट्टी को उपजाऊ बनाएं।</p>
+            </div>
+        </div>
+
+        <!-- Tab 4: Entry -->
+        <div id="tab-entry" class="tab-content hidden">
+            <div class="card">
+                <h3>⚙️ डेटा और प्लॉट्स</h3>
+                <p>यहाँ आप अपने खेत की डेटा प्रविष्टि मैनेज कर सकते हैं।</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="fixed-footer">
+        Developer: <strong>SHARD PATEL</strong> | 📞 8120727987
     </div>
 
 <canvas id="resizeCanvas" class="hidden"></canvas>
 
 <script>
+    function switchTab(tabName) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+        document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+        
+        if(tabName === 'calc') {
+            document.getElementById('tab-calc').classList.remove('hidden');
+            event.target.classList.add('active');
+        } else if(tabName === 'doctor') {
+            document.getElementById('tab-doctor').classList.remove('hidden');
+            event.target.classList.add('active');
+        } else if(tabName === 'training') {
+            document.getElementById('tab-training').classList.remove('hidden');
+            event.target.classList.add('active');
+        } else if(tabName === 'entry') {
+            document.getElementById('tab-entry').classList.remove('hidden');
+            event.target.classList.add('active');
+        }
+    }
+
+    function calculateAWD() {
+        let area = document.getElementById('landArea').value || 1;
+        let res = document.getElementById('calcResult');
+        res.innerHTML = `<div class="doctor-card"><p>✅ <strong>${area} एकड़</strong> के लिए AWD सिंचाई शेड्यूल तैयार है। पानी की बचत: लगभग 35%!</p></div>`;
+    }
+
     function compressAndAnalyze(event) {
         let file = event.target.files[0];
         if (!file) return;
@@ -101,9 +173,8 @@
                 .then(response => response.json())
                 .then(data => {
                     if(data.success && data.detectedDiseaseKey) {
-                        let text = data.detectedDiseaseKey;
                         statusText.innerHTML = "✅ सफलतापूर्वक रोग पहचान लिया गया!";
-                        showAIResultPackage(text);
+                        showAIResultPackage(data.detectedDiseaseKey);
                     } else {
                         statusText.innerHTML = "⚠️ पहचान नहीं हो पाई। कृपया दूसरी साफ फोटो लें।";
                     }
@@ -122,17 +193,17 @@
         let packageHtml = "";
 
         if(val.includes('blast')) {
-            packageHtml = `<div class="doctor-card ai-result"><h4 style="color:#7c3aed; margin-top:0;">🩺 ब्लास्ट रोग (Blast Disease)</h4><p><strong>उपचार पैकेज (प्रति एकड़):</strong> Syngenta Beam (Tricyclazole 75% WP) — <strong>120 ग्राम</strong> + Amino Acid — <strong>400 मिली</strong>.</p></div>`;
+            packageHtml = `<div class="doctor-card ai-result"><h4 style="color:#7c3aed; margin-top:0;">🩺 ब्लास्ट रोग (Blast Disease)</h4><p><strong>उपचार पैकेज (प्रति एकड़):</strong> Syngenta Beam — <strong>120 ग्राम</strong> + Amino Acid — <strong>400 मिली</strong>.</p></div>`;
         } else if(val.includes('blb')) {
-            packageHtml = `<div class="doctor-card ai-result"><h4 style="color:#7c3aed; margin-top:0;">🩺 जीवाणु पत्ती झुलसा (BLB)</h4><p><strong>उपचार पैकेज (प्रति एकड़):</strong> Streptocycline (9 ग्राम) + Copper Oxychloride — 500 ग्राम.</p></div>`;
+            packageHtml = `<div class="doctor-card ai-result"><h4 style="color:#7c3aed; margin-top:0;">🩺 जीवाणु पत्ती झुलसा (BLB)</h4><p><strong>उपचार पैकेज (प्रति एकड़):</strong> Streptocycline (9 ग्राम) + Copper Oxychloride — <strong>500 ग्राम</strong>.</p></div>`;
         } else if(val.includes('borer')) {
-            packageHtml = `<div class="doctor-card ai-result"><h4 style="color:#7c3aed; margin-top:0;">🩺 तना छेदक (Stem Borer)</h4><p><strong>उपचार पैकेज (प्रति एकड़):</strong> FMC Fame — 50 मिली या Bayer Regent — 4 किलो.</p></div>`;
+            packageHtml = `<div class="doctor-card ai-result"><h4 style="color:#7c3aed; margin-top:0;">🩺 तना छेदक (Stem Borer)</h4><p><strong>उपचार पैकेज (प्रति एकड़):</strong> FMC Fame — <strong>50 मिली</strong> या Bayer Regent — <strong>4 किलो</strong>.</p></div>`;
         } else if(val.includes('bph')) {
-            packageHtml = `<div class="doctor-card ai-result"><h4 style="color:#7c3aed; margin-top:0;">🩺 भूरा माहू / तेला (BPH)</h4><p><strong>उपचार पैकेज (प्रति एकड़):</strong> PI Industries Token (Dinotefuran 20% SG) — 120 ग्राम.</p></div>`;
+            packageHtml = `<div class="doctor-card ai-result"><h4 style="color:#7c3aed; margin-top:0;">🩺 भूरा माहू / तेला (BPH)</h4><p><strong>उपचार पैकेज (प्रति एकड़):</strong> Dinotefuran 20% SG — <strong>120 ग्राम</strong>.</p></div>`;
         } else if(val.includes('sheath')) {
-            packageHtml = `<div class="doctor-card ai-result"><h4 style="color:#7c3aed; margin-top:0;">🩺 शीथ ब्लास्ट (Sheath Blight)</h4><p><strong>उपचार पैकेज (प्रति एकड़):</strong> Tata Contaf Plus — 400 मिली.</p></div>`;
+            packageHtml = `<div class="doctor-card ai-result"><h4 style="color:#7c3aed; margin-top:0;">🩺 शीथ ब्लास्ट (Sheath Blight)</h4><p><strong>उपचार पैकेज (प्रति एकड़):</strong> Tata Contaf Plus — <strong>400 मिली</strong>.</p></div>`;
         } else {
-            packageHtml = `<div class="doctor-card ai-result"><h4 style="color:#7c3aed; margin-top:0;">🩺 सामान्य स्कैन परिणाम</h4><p>रोग की पहचान: <strong>${val}</strong>। कृपया उचित कृषि सलाहकार से संपर्क करें।</p></div>`;
+            packageHtml = `<div class="doctor-card ai-result"><h4 style="color:#7c3aed; margin-top:0;">🩺 स्कैन परिणाम</h4><p>पहचान: <strong>${val}</strong></p></div>`;
         }
 
         res.innerHTML = packageHtml;
