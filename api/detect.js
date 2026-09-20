@@ -10,33 +10,26 @@ export default async function handler(req, res) {
             return res.status(400).json({ success: false, error: 'Image data missing' });
         }
 
-        // आपकी API Key यहाँ सीधे सेट कर दी गई है
-        const CLAUDE_API_KEY = "AIzaSyCH5pXri5I6Mo8ccCM9tsq2PupHIjxne_I";
+        // आपकी Gemini API Key यहाँ सेट है
+        const GEMINI_API_KEY = "AIzaSyCH5pXri5I6Mo8ccCM9tsq2PupHIjxne_I";
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 
-        const response = await fetch("https://api.anthropic.com/v1/messages", {
+        const response = await fetch(url, {
             method: "POST",
             headers: {
-                "x-api-key": CLAUDE_API_KEY,
-                "anthropic-version": "2023-06-01",
                 "content-type": "application/json"
             },
             body: JSON.stringify({
-                model: "claude-3-5-sonnet-20241022",
-                max_tokens: 300,
-                messages: [{
-                    role: "user",
-                    content: [
+                contents: [{
+                    parts: [
                         {
-                            type: "image",
-                            source: {
-                                type: "base64",
-                                media_type: mimeType || "image/jpeg",
+                            inline_data: {
+                                mime_type: mimeType || "image/jpeg",
                                 data: imageBase64
                             }
                         },
                         {
-                            type: "text",
-                            text: "Analyze this paddy crop leaf image. Identify if it has Blast, BLB, Borer, BPH, or Sheath Blight. Return ONLY the disease key in lowercase (e.g., 'blast', 'blb', 'borer', 'bph', 'sheath'), nothing else."
+                            text: "Analyze this paddy crop leaf image. Identify if it has blast, blb, borer, bph, or sheath blight. Return ONLY the lowercase keyword for the disease ('blast', 'blb', 'borer', 'bph', or 'sheath'), nothing else."
                         }
                     ]
                 }]
@@ -45,11 +38,11 @@ export default async function handler(req, res) {
 
         const data = await response.json();
         
-        if (data.content && data.content[0] && data.content[0].text) {
-            let detectedText = data.content[0].text.trim().toLowerCase();
+        if (data.candidates && data.candidates[0].content && data.candidates[0].content.parts[0].text) {
+            let detectedText = data.candidates[0].content.parts[0].text.trim().toLowerCase();
             return res.status(200).json({ success: true, detectedDiseaseKey: detectedText });
         } else {
-            return res.status(500).json({ success: false, error: 'AI response failed' });
+            return res.status(500).json({ success: false, error: 'Gemini AI response failed' });
         }
 
     } catch (error) {
